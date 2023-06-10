@@ -7,6 +7,7 @@ import 'package:freshgio/library/api/prefs_og.dart';
 import 'package:freshgio/library/bloc/old_to_realm.dart';
 import 'package:freshgio/library/cache_manager.dart';
 import 'package:freshgio/library/data/settings_model.dart';
+import 'package:freshgio/library/geofence/the_great_geofencer.dart';
 import 'package:freshgio/realm_data/data/realm_sync_api.dart';
 import 'package:freshgio/ui/auth/auth_phone_signin.dart';
 import 'package:page_transition/page_transition.dart';
@@ -325,6 +326,7 @@ class AuthPhoneRegistrationMobileState
     pp('\n$mm Organization OG Administrator created: 🌍🌍🌍🌍  🍎 '
         '${user.name!} 🌍🌍🌍🌍');
 
+    await theGreatGeofencer.buildGeofences(organizationId: organizationId);
     widget.onUserRegistered(adminUser);
     _popOut();
   }

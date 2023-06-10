@@ -44,7 +44,7 @@ class TheGreatGeofencer {
 
   final _geofenceList = <geo.Geofence>[];
   mrm.User? _user;
-  late SettingsModel settingsModel;
+  late SettingsModel _settingsModel;
 
   Future<List<mrm.ProjectPosition>> _findProjectPositionsByLocation(
       {required String organizationId,
@@ -56,44 +56,43 @@ class TheGreatGeofencer {
         latitude: latitude,
         longitude: longitude,
         radiusInKM: radiusInKM);
-    pp('$xx _getProjectPositionsByLocation: found ${mList.length}\n');
-    final fList = <mrm.ProjectPosition>[];
-    for (var value in mList) {
-      fList.add(OldToRealm.getProjectPosition(value));
-    }
-    return fList;
+    pp('$xx _findProjectPositionsByLocation: found ${mList.length}\n');
+
+    return mList;
   }
 
-  Future buildGeofences({double? radiusInKM}) async {
+  Future buildGeofences(
+      {double? radiusInKM, required String organizationId}) async {
     pp('$xx buildGeofences .... build geofences for the organization started ... 🌀 ');
-    var p = await prefsOGx.getUser();
+
+    _settingsModel = await prefsOGx.getSettings();
+    final p = await prefsOGx.getUser();
     _user = OldToRealm.getUser(p!);
-    settingsModel = await prefsOGx.getSettings();
-    if (_user == null) {
-      return;
-    }
-
-
     var finalList = <mrm.ProjectPosition>[];
     var loc = await locationBloc.getLocation();
     finalList = await _findProjectPositionsByLocation(
-        organizationId: _user!.organizationId!,
+        organizationId: organizationId,
         latitude: loc.latitude,
-        longitude: loc.longitude!,
+        longitude: loc.longitude,
         radiusInKM: radiusInKM ?? 50);
 
     pp('$xx buildGeofences .... project positions found by location: ${finalList.length} ');
+
     if (finalList.isEmpty) {
       finalList = realmSyncApi.getOrganizationPositions(
-        organizationId: _user!.organizationId!,
+        organizationId: organizationId,
       );
     }
 
     int cnt = 0;
     for (var pos in finalList) {
       await addGeofence(
-          projectPosition: pos,
-          radius: settingsModel.distanceFromProject!.toDouble());
+          organizationId: organizationId,
+          projectName: pos.projectName!,
+          projectId: pos.projectId!,
+          longitude: pos.position!.coordinates[0],
+          latitude: pos.position!.coordinates[1],
+          radius: _settingsModel.distanceFromProject!.toDouble());
       cnt++;
       if (cnt > 98) {
         break;
@@ -116,13 +115,13 @@ class TheGreatGeofencer {
 
     try {
       pp('$xx  🔶🔶🔶🔶🔶🔶 Starting GeofenceService ...... 🔶🔶🔶🔶🔶🔶 ');
-      await geofenceService.start().onError((error, stackTrace) => errorHandler.handleError(
-                exception: GeoException(
-                    message: 'No location available, geofenceEvent failed',
-                    translationKey: 'serverProblem',
-                    errorType: GeoException.formatException,
-                    url: '/geo/v1/addGeofenceEvent'))
-          );
+      await geofenceService.start().onError((error, stackTrace) =>
+          errorHandler.handleError(
+              exception: GeoException(
+                  message: 'No location available, geofenceEvent failed',
+                  translationKey: 'serverProblem',
+                  errorType: GeoException.formatException,
+                  url: '/geo/v1/addGeofenceEvent')));
 
       // pp('$xx ✅✅✅✅✅✅ geofences 🍐🍐🍐 STARTED OK 🍐🍐🍐 '
       //     '🔆🔆🔆 will wait for geofence status changes ... 🔵🔵🔵🔵🔵 ');
@@ -152,6 +151,8 @@ class TheGreatGeofencer {
     var loc = await locationBloc.getLocation();
     //todo use org settings rather than possibly changed settings from prefs
     final sett = await prefsOGx.getSettings();
+    var p = await prefsOGx.getUser();
+    _user = OldToRealm.getUser(p!);
     var orgSetting = realmSyncApi.getLatestOrganizationSettings(
         organizationId: sett.organizationId!);
     if (orgSetting != null) {
@@ -185,20 +186,19 @@ class TheGreatGeofencer {
       switch (status) {
         case 'GeofenceStatus.ENTER':
           event.status = 'ENTER';
-          pp('$xx IGNORING geofence ENTER event for ${event.projectName}');
-          break;
+          pp('$xx .... IGNORING geofence ENTER event for ${event.projectName}');
+          return;
         case 'GeofenceStatus.DWELL':
           event.status = 'DWELL';
-          addObject(event);
           break;
         case 'GeofenceStatus.EXIT':
           event.status = 'EXIT';
-          addObject(event);
           break;
       }
       //
-      final act = mrm.ActivityModel(ObjectId(),
-      geofenceEvent: OldToRealm.getGeofenceString(event),
+      final act = mrm.ActivityModel(
+        ObjectId(),
+        geofenceEvent: OldToRealm.getGeofenceString(event),
         projectId: event.projectId,
         organizationId: event.organizationId,
         organizationName: _user!.organizationName,
@@ -211,62 +211,47 @@ class TheGreatGeofencer {
         date: DateTime.now().toUtc().toIso8601String(),
         userThumbnailUrl: _user!.thumbnailUrl,
       );
-      realmSyncApi.addActivities([act]);
-      pp('$xx realmSyncApi: activity added : ${act.date} - ${act.projectName}');
-    }
-  }
+      //
+      pp('$xx realmSyncApi: geofenceEvent and activity to be added in transaction : ${act.date} - ${act.projectName}');
+      await realmRemote.writeAsync(() {
+        realmRemote.add<mrm.GeofenceEvent>(event);
+        realmRemote.add<mrm.ActivityModel>(act);
+      });
 
-  Future addObject(mrm.GeofenceEvent event) async {
-    pp('$xx about to send geofence event to backend ... ');
-    try {
-      realmSyncApi.addGeofenceEvents([event]);
-      pp('$xx realmSyncApi: geofence event added to database for '
-          '${event.projectName} - 🍎 ${event.date} 🍎');
-      _streamController.sink.add(event);
-    } catch (e) {
-      pp('$xx failed to add geofence event');
-      if (e is GeoException) {
-        errorHandler.handleError(exception: e);
-      } else {
-        errorHandler.handleError(
-            exception: GeoException(
-                message: 'Failed to add geofenceEvent: $e',
-                translationKey: 'serverProblem',
-                errorType: GeoException.httpException,
-                url: getUrl()));
-      }
+      realmSyncApi.getOrganizationActivities(organizationId: act.organizationId!);
+      realmSyncApi.getOrganizationGeofenceEvents(organizationId: act.organizationId!);
+
+      pp('$xx realmSyncApi: geofenceEvent and activity added : ${act.date} - ${act.projectName}');
     }
   }
 
   Future addGeofence(
-      {required mrm.ProjectPosition projectPosition,
+      {required String organizationId,
+      required String projectId,
+      required String projectName,
+      required double latitude,
+      required double longitude,
       required double radius}) async {
+    var data = {
+      'projectId': projectId,
+      'projectName': projectName,
+      'organizationId': organizationId,
+      'userId': _user!.userId,
+      'userName': _user!.name,
+      'userUrl': _user!.thumbnailUrl,
+      'dateGeofenceAdded': DateTime.now().toUtc().toIso8601String(),
+    };
+    var fence = Geofence(
+      id: '${projectId!}_${DateTime.now().microsecondsSinceEpoch}',
+      data: data,
+      latitude: latitude,
+      longitude: longitude,
+      radius: [
+        GeofenceRadius(id: 'radius_from_settings', length: radius),
+      ],
+    );
 
-    if (projectPosition.position != null) {
-      var data = {
-        'projectId': projectPosition.projectId,
-        'projectName': projectPosition.projectName,
-        'organizationId': projectPosition.organizationId,
-        'userId': _user!.userId,
-        'userName': _user!.name,
-        'userUrl': _user!.thumbnailUrl,
-        'dateGeofenceAdded': DateTime.now().toUtc().toIso8601String(),
-      };
-      var fence = Geofence(
-        id: '${projectPosition.projectId!}_${DateTime.now().microsecondsSinceEpoch}',
-        data: data,
-        latitude: projectPosition.position!.coordinates[1],
-        longitude: projectPosition.position!.coordinates[0],
-        radius: [
-          GeofenceRadius(id: 'radius_from_settings', length: radius),
-        ],
-      );
-
-      _geofenceList.add(fence);
-
-    } else {
-      pp('🔴🔴🔴🔴🔴🔴 project position is null, WTF??? ${projectPosition.projectName}');
-    }
+    _geofenceList.add(fence);
   }
 
   var defaultRadiusInKM = 100.0;

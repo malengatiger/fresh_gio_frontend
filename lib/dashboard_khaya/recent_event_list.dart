@@ -306,7 +306,7 @@ class _RecentActivitiesHorizontalState extends State<RecentActivitiesHorizontal>
       );
     }
     return StreamBuilder<List<mrm.ActivityModel>>(
-      stream: widget.realmSyncApi.activityStream,
+      stream: widget.realmSyncApi.orgActivityStream,
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
         var activities = <mrm.ActivityModel>[];
         if (snapshot.hasData) {

@@ -15,7 +15,9 @@ import 'package:freshgio/library/data/project_summary.dart';
 import 'package:freshgio/library/data/stitch/payment_request.dart';
 import 'package:freshgio/library/data/subscription.dart';
 import 'package:freshgio/library/errors/error_handler.dart';
+import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
 import 'package:http/http.dart' as http;
+import 'package:realm/realm.dart';
 
 import '../auth/app_auth.dart';
 import '../bloc/organization_bloc.dart';
@@ -51,7 +53,6 @@ import '../data/weather/hourly_forecast.dart';
 import '../emojis.dart';
 import '../functions.dart';
 import '../utilities/environment.dart';
-import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
 
 late DataApiDog dataApiDog;
 
@@ -78,7 +79,8 @@ class DataApiDog {
   final PrefsOGx prefsOGx;
   final ErrorHandler errorHandler;
 
-  DataApiDog(this.client, this.appAuth, this.cacheManager, this.prefsOGx, this.errorHandler) {
+  DataApiDog(this.client, this.appAuth, this.cacheManager, this.prefsOGx,
+      this.errorHandler) {
     if (GioEnv.currentStatus == 'dev') {
       url = GioEnv.devUrl;
     } else {
@@ -111,7 +113,8 @@ class DataApiDog {
     return s;
   }
 
-  Future<GioPaymentRequest> addPaymentRequest(GioPaymentRequest paymentRequest) async {
+  Future<GioPaymentRequest> addPaymentRequest(
+      GioPaymentRequest paymentRequest) async {
     Map bag = paymentRequest.toJson();
 
     var result = await _callWebAPIPost('${url}addPaymentRequest', bag);
@@ -128,7 +131,8 @@ class DataApiDog {
     return s;
   }
 
-  Future<GioSubscription> updateSubscription(GioSubscription subscription) async {
+  Future<GioSubscription> updateSubscription(
+      GioSubscription subscription) async {
     Map bag = subscription.toJson();
 
     var result = await _callWebAPIPost('${url!}updateSubscription', bag);
@@ -136,7 +140,9 @@ class DataApiDog {
     await prefsOGx.saveGioSubscription(s);
     return s;
   }
-  Future<GioSubscription> activateSubscription(GioSubscription subscription) async {
+
+  Future<GioSubscription> activateSubscription(
+      GioSubscription subscription) async {
     Map bag = subscription.toJson();
 
     var result = await _callWebAPIPost('${url!}activateSubscription', bag);
@@ -144,7 +150,9 @@ class DataApiDog {
     await prefsOGx.saveGioSubscription(s);
     return s;
   }
-  Future<GioSubscription> deActivateSubscription(GioSubscription subscription) async {
+
+  Future<GioSubscription> deActivateSubscription(
+      GioSubscription subscription) async {
     Map bag = subscription.toJson();
 
     var result = await _callWebAPIPost('${url!}deActivateSubscription', bag);
@@ -153,17 +161,16 @@ class DataApiDog {
     return s;
   }
 
-  Future<List<Pricing>> getPricing(
-      String countryId) async {
+  Future<List<Pricing>> getPricing(String countryId) async {
     List<Pricing> mList = [];
 
-    List result = await _sendHttpGET(
-        '${url!}getCountryPricing?countryId=$countryId');
+    List result =
+        await _sendHttpGET('${url!}getCountryPricing?countryId=$countryId');
     for (var element in result) {
       mList.add(Pricing.fromJson(element));
     }
     pp('🌿 🌿 🌿 getPricing returned: 🌿 ${mList.length}');
-    mList.sort((a,b) => b.date!.compareTo(a.date!));
+    mList.sort((a, b) => b.date!.compareTo(a.date!));
     return mList;
   }
 
@@ -175,7 +182,6 @@ class DataApiDog {
     await cacheManager.addGeofenceEvent(geofenceEvent: s);
     return s;
   }
-
 
   Future<LocationResponse> addLocationResponse(
       LocationResponse response) async {
@@ -290,19 +296,17 @@ class DataApiDog {
     return mList;
   }
 
-  Future<Organization?> getOrganization(
-      String organizationId) async {
+  Future<Organization?> getOrganization(String organizationId) async {
     Organization? org;
 
     final result = await _sendHttpGET(
         '${url!}getOrganization?organizationId=$organizationId');
 
-   org = Organization.fromJson(result);
-   return org;
+    org = Organization.fromJson(result);
+    return org;
   }
 
   Future<List<Organization>> getOrganizations() async {
-
     var mList = <Organization>[];
     List result = await _sendHttpGET('${url}getOrganizations');
     for (var org in result) {
@@ -418,7 +422,7 @@ class DataApiDog {
   Future<KillResponse> killUser(
       {required String userId, required String killerId}) async {
     var result =
-    await _sendHttpGET('${url}killUser?userId=$userId&killerId=$killerId');
+        await _sendHttpGET('${url}killUser?userId=$userId&killerId=$killerId');
     var resp = KillResponse.fromJson(result);
     return resp;
   }
@@ -437,8 +441,7 @@ class DataApiDog {
     await cacheManager.addProject(project: u.project!);
     await cacheManager.addSettings(settings: u.settings!);
     await cacheManager.addOrganization(organization: u.organization!);
-    await cacheManager.addProjectPosition(
-        projectPosition: u.projectPosition!);
+    await cacheManager.addProjectPosition(projectPosition: u.projectPosition!);
 
     pp('$xz️ Organization registered! 😡😡 RegistrationBag arrived from backend server and cached in Hive; org:: ☕️ ${u.organization!.name!}');
 
@@ -488,7 +491,7 @@ class DataApiDog {
 
   Future<ProjectCount> getProjectCount(String projectId) async {
     var result =
-    await _sendHttpGET('${url}getCountsByProject?projectId=$projectId');
+        await _sendHttpGET('${url}getCountsByProject?projectId=$projectId');
     var cnt = ProjectCount.fromJson(result);
     pp('🌿 🌿 🌿 Project count returned: 🌿 ${cnt.toJson()}');
     return cnt;
@@ -533,7 +536,7 @@ class DataApiDog {
 
   Future<List<ProjectPolygon>> findProjectPolygonsById(String projectId) async {
     var result =
-    await _sendHttpGET('${url!}getProjectPolygons?projectId=$projectId');
+        await _sendHttpGET('${url!}getProjectPolygons?projectId=$projectId');
     List<ProjectPolygon> list = [];
     result.forEach((m) {
       list.add(ProjectPolygon.fromJson(m));
@@ -596,7 +599,7 @@ class DataApiDog {
 
   Future<LocationRequest> sendLocationRequest(LocationRequest request) async {
     var result =
-    await _callWebAPIPost('${url!}sendLocationRequest', request.toJson());
+        await _callWebAPIPost('${url!}sendLocationRequest', request.toJson());
     final bag = LocationRequest.fromJson(result);
     return bag;
   }
@@ -635,11 +638,11 @@ class DataApiDog {
 
   Future<List<DailyForecast>> getDailyForecast(
       {required double latitude,
-        required double longitude,
-        required String timeZone,
-        required String projectPositionId,
-        required String projectId,
-        required String projectName}) async {
+      required double longitude,
+      required String timeZone,
+      required String projectPositionId,
+      required String projectId,
+      required String projectName}) async {
     var result = await _sendHttpGET(
         '${url!}getDailyForecasts?latitude=$latitude&longitude=$longitude&timeZone=$timeZone');
     List<DailyForecast> list = [];
@@ -657,11 +660,11 @@ class DataApiDog {
 
   Future<List<HourlyForecast?>> getHourlyForecast(
       {required double latitude,
-        required double longitude,
-        required String timeZone,
-        required String projectPositionId,
-        required String projectId,
-        required String projectName}) async {
+      required double longitude,
+      required String timeZone,
+      required String projectPositionId,
+      required String projectId,
+      required String projectName}) async {
     var result = await _sendHttpGET(
         '${url!}getHourlyForecasts?latitude=$latitude&longitude=$longitude&timeZone=$timeZone');
     List<HourlyForecast> list = [];
@@ -679,8 +682,8 @@ class DataApiDog {
 
   Future<List<Photo>> getProjectPhotos(
       {required String projectId,
-        required String startDate,
-        required String endDate}) async {
+      required String startDate,
+      required String endDate}) async {
     var result = await _sendHttpGET(
         '${url!}getProjectPhotos?projectId=$projectId&startDate=$startDate&endDate=$endDate');
     List<Photo> list = [];
@@ -693,7 +696,7 @@ class DataApiDog {
 
   Future<List<Photo>> getUserProjectPhotos(String userId) async {
     var result =
-    await _sendHttpGET('${url!}getUserProjectPhotos?userId=$userId');
+        await _sendHttpGET('${url!}getUserProjectPhotos?userId=$userId');
     List<Photo> list = [];
     result.forEach((m) {
       list.add(Photo.fromJson(m));
@@ -715,7 +718,8 @@ class DataApiDog {
         geofenceEvents: [],
         projectPolygons: [],
         date: DateTime.now().toIso8601String(),
-        settings: [], activityModels: []);
+        settings: [],
+        activityModels: []);
 
     var result = await _sendHttpGET(
         '${url!}getProjectData?projectId=$projectId&startDate=$startDate&endDate=$endDate');
@@ -743,7 +747,7 @@ class DataApiDog {
 
   Future<List<Video>> getUserProjectVideos(String userId) async {
     var result =
-    await _sendHttpGET('${url!}getUserProjectVideos?userId=$userId');
+        await _sendHttpGET('${url!}getUserProjectVideos?userId=$userId');
     List<Video> list = [];
     result.forEach((m) {
       list.add(Video.fromJson(m));
@@ -754,7 +758,7 @@ class DataApiDog {
 
   Future<List<Audio>> getUserProjectAudios(String userId) async {
     var result =
-    await _sendHttpGET('${url!}getUserProjectAudios?userId=$userId');
+        await _sendHttpGET('${url!}getUserProjectAudios?userId=$userId');
     List<Audio> list = [];
     result.forEach((m) {
       list.add(Audio.fromJson(m));
@@ -832,13 +836,11 @@ class DataApiDog {
     return org;
   }
 
-  Future<List<Photo>> getOrganizationPhotos(
-      String organizationId) async {
+  Future<List<Photo>> getOrganizationPhotos(String organizationId) async {
     pp('$xz getOrganizationPhotos: 🍏 id: $organizationId');
 
     var cmd = 'getAllOrganizationPhotos';
-    var u =
-        '$url$cmd?organizationId=$organizationId';
+    var u = '$url$cmd?organizationId=$organizationId';
 
     List result = await _sendHttpGET(u);
     pp('$xz getOrganizationPhotos: 🍏 found: ${result.length} org photos');
@@ -848,13 +850,13 @@ class DataApiDog {
     }
     return list;
   }
+
   Future<List<ProjectPosition>> getOrganizationPositions(
       String organizationId) async {
     pp('$xz getOrganizationPhotos: 🍏 id: $organizationId');
 
     var cmd = 'getAllOrganizationPositions';
-    var u =
-        '$url$cmd?organizationId=$organizationId';
+    var u = '$url$cmd?organizationId=$organizationId';
 
     List result = await _sendHttpGET(u);
     pp('$xz getOrganizationPhotos: 🍏 found: ${result.length} org photos');
@@ -864,13 +866,13 @@ class DataApiDog {
     }
     return list;
   }
+
   Future<List<ProjectPolygon>> getOrganizationPolygons(
       String organizationId) async {
     pp('$xz getOrganizationPhotos: 🍏 id: $organizationId');
 
     var cmd = 'getAllOrganizationPolygons';
-    var u =
-        '$url$cmd?organizationId=$organizationId';
+    var u = '$url$cmd?organizationId=$organizationId';
 
     List result = await _sendHttpGET(u);
     pp('$xz getOrganizationPhotos: 🍏 found: ${result.length} org photos');
@@ -882,12 +884,12 @@ class DataApiDog {
   }
 
   Future<List<Video>> getOrganizationVideos(
-      String organizationId,) async {
+    String organizationId,
+  ) async {
     pp('$xz getOrganizationVideos: 🍏 id: $organizationId');
 
     var cmd = 'getAllOrganizationVideos';
-    var u =
-        '$url$cmd?organizationId=$organizationId';
+    var u = '$url$cmd?organizationId=$organizationId';
 
     List result = await _sendHttpGET(u);
     List<Video> list = [];
@@ -912,7 +914,9 @@ class DataApiDog {
     await cacheManager.addAudios(audios: list);
     return list;
   }
-  Future<List<ActivityModel>> getAllOrganizationActivity(String organizationId) async {
+
+  Future<List<ActivityModel>> getAllOrganizationActivity(
+      String organizationId) async {
     pp('$xz getOrganizationAudios: 🍏 id: $organizationId');
 
     var cmd = 'getAllOrganizationActivity';
@@ -970,6 +974,7 @@ class DataApiDog {
     }
     return list;
   }
+
   Future<List<GeofenceEvent>> getGeofenceEventsByOrganization(
       String organizationId) async {
     var cmd = 'getGeofenceEventsByOrganization';
@@ -1002,9 +1007,9 @@ class DataApiDog {
 
   Future<List<Project>> findProjectsByLocation(
       {required String organizationId,
-        required double latitude,
-        required double longitude,
-        required double radiusInKM}) async {
+      required double latitude,
+      required double longitude,
+      required double radiusInKM}) async {
     pp('\n$xz ......... findProjectsByLocation: 🍏 radiusInKM: $radiusInKM kilometres,  '
         '🥏 🥏 🥏about to call _sendHttpGET.........');
 
@@ -1031,8 +1036,8 @@ class DataApiDog {
 
   Future<List<City>> findCitiesByLocation(
       {required double latitude,
-        required double longitude,
-        required double radiusInKM}) async {
+      required double longitude,
+      required double radiusInKM}) async {
     pp('$xz findCitiesByLocation: 🍏 radiusInKM: $radiusInKM');
 
     var cmd = 'findCitiesByLocation';
@@ -1052,11 +1057,11 @@ class DataApiDog {
     return list;
   }
 
-  Future<List<ProjectPosition>> findProjectPositionsByLocation(
+  Future<List<mrm.ProjectPosition>> findProjectPositionsByLocation(
       {required String organizationId,
-        required double latitude,
-        required double longitude,
-        required double radiusInKM}) async {
+      required double latitude,
+      required double longitude,
+      required double radiusInKM}) async {
     pp('$xz findProjectPositionsByLocation: 🍏 radiusInKM: $radiusInKM');
 
     var cmd = 'findProjectPositionsByLocation';
@@ -1064,12 +1069,42 @@ class DataApiDog {
         '$url$cmd?organizationId=$organizationId&latitude=$latitude&longitude=$longitude&radiusInKM=$radiusInKM';
 
     List result = await _sendHttpGET(u);
-    List<ProjectPosition> list = [];
+    List<mrm.ProjectPosition> list = [];
+    pp('$xz findProjectPositionsByLocation: 🍏 found, before deserialization: ${result.length} project positions');
     for (var m in result) {
-      list.add(ProjectPosition.fromJson(m));
+      final nearestCities = <String>[];
+      if (m['nearestCities'] != null) {
+        List cc = m['nearestCities'];
+        for (var element in cc) {
+          nearestCities.add(element as String);
+        }
+      }
+      var posJson = m['position'];
+      final lat = posJson['latitude'] as double;
+      final lng = posJson['longitude'] as double;
+      final coords = [longitude, latitude];
+      list.add(mrm.ProjectPosition(
+        ObjectId(),
+        projectId: m['projectId'],
+        projectName: m['projectName'],
+        organizationId: m['organizationId'],
+        organizationName: m['organizationName'],
+        name: m['name'],
+        created: m['created'],
+        userId: m['userId'],
+        userUrl: m['userUrl'],
+        projectPositionId: m['projectPositionId'],
+        possibleAddress: m['possibleAddress'],
+        nearestCities: nearestCities,
+
+        position: mrm.Position(
+          type: 'Point', coordinates: coords,
+          latitude: lat, longitude: lng,
+        ),
+        userName: m['userName'],
+      ));
     }
     pp('$xz findProjectPositionsByLocation: 🍏 found: ${list.length} project positions');
-    await cacheManager.addProjectPositions(positions: list);
     return list;
   }
 
@@ -1088,11 +1123,12 @@ class DataApiDog {
     return list;
   }
 
-  Future<DataCounts> getOrganizationDataCounts(
-      String organizationId, String startDate, String endDate, int activityStreamHours) async {
+  Future<DataCounts> getOrganizationDataCounts(String organizationId,
+      String startDate, String endDate, int activityStreamHours) async {
     pp('$xz getOrganizationDataCounts: 🍏 id: $organizationId');
 
-    var cmd = 'getOrganizationDataCounts?organizationId=$organizationId&startDate=$startDate&endDate=$endDate&activityStreamHours=$activityStreamHours';
+    var cmd =
+        'getOrganizationDataCounts?organizationId=$organizationId&startDate=$startDate&endDate=$endDate&activityStreamHours=$activityStreamHours';
     var u = '$url$cmd';
 
     var result = await _sendHttpGET(u);
@@ -1134,8 +1170,8 @@ class DataApiDog {
 
   Future addPointToPolygon(
       {required String communityId,
-        required double latitude,
-        required double longitude}) async {
+      required double latitude,
+      required double longitude}) async {
     Map bag = {
       'communityId': communityId,
       'latitude': latitude,
@@ -1281,7 +1317,7 @@ class DataApiDog {
 
   Future<Condition> addCondition(Condition condition) async {
     var result =
-    await _callWebAPIPost('${url!}addCondition', condition.toJson());
+        await _callWebAPIPost('${url!}addCondition', condition.toJson());
     var x = Condition.fromJson(result);
     await cacheManager.addCondition(condition: x);
     return x;
@@ -1289,11 +1325,11 @@ class DataApiDog {
 
   Future<Photo> addSettlementPhoto(
       {required String settlementId,
-        required String url,
-        required String comment,
-        required double latitude,
-        longitude,
-        required String userId}) async {
+      required String url,
+      required String comment,
+      required double latitude,
+      longitude,
+      required String userId}) async {
     Map bag = {
       'settlementId': settlementId,
       'url': url,
@@ -1312,11 +1348,11 @@ class DataApiDog {
 
   Future<Video> addProjectVideo(
       {required String projectId,
-        required String url,
-        required String comment,
-        required double latitude,
-        longitude,
-        required String userId}) async {
+      required String url,
+      required String comment,
+      required double latitude,
+      longitude,
+      required String userId}) async {
     Map bag = {
       'projectId': projectId,
       'url': url,
@@ -1334,11 +1370,11 @@ class DataApiDog {
 
   Future<Project> addProjectRating(
       {required String projectId,
-        required String rating,
-        required String comment,
-        required double latitude,
-        longitude,
-        required String userId}) async {
+      required String rating,
+      required String comment,
+      required double latitude,
+      longitude,
+      required String userId}) async {
     Map bag = {
       'projectId': projectId,
       'rating': rating,
@@ -1471,6 +1507,7 @@ class DataApiDog {
     list.sort((a, b) => a.name!.compareTo(b.name!));
     return list;
   }
+
   Future<List<City>> getCitiesByCountry(String countryId) async {
     var cmd = 'getCitiesByCountry?countryId=$countryId';
     var u = '$url$cmd';
@@ -1508,10 +1545,10 @@ class DataApiDog {
     try {
       var resp = await client
           .post(
-        Uri.parse(mUrl),
-        body: mBag,
-        headers: headers,
-      )
+            Uri.parse(mUrl),
+            body: mBag,
+            headers: headers,
+          )
           .timeout(const Duration(seconds: timeOutInSeconds));
       if (resp.statusCode == 200) {
         pp('$xz _callWebAPIPost RESPONSE: 💙💙 statusCode: 👌👌👌 ${resp.statusCode} 👌👌👌 💙 for $mUrl');
@@ -1573,6 +1610,7 @@ class DataApiDog {
   }
 
   static const xz = '🌎🌎🌎🌎🌎🌎 DataApiDog: ';
+
   Future _sendHttpGET(String mUrl) async {
     pp('$xz _sendHttpGET: 🔆 🔆 🔆 calling : 💙 $mUrl  💙');
     var start = DateTime.now();
@@ -1593,9 +1631,9 @@ class DataApiDog {
     try {
       var resp = await client
           .get(
-        Uri.parse(mUrl),
-        headers: headers,
-      )
+            Uri.parse(mUrl),
+            headers: headers,
+          )
           .timeout(const Duration(seconds: timeOutInSeconds));
       pp('$xz http GET call RESPONSE: .... : 💙 statusCode: 👌👌👌 ${resp.statusCode} 👌👌👌 💙 for $mUrl');
       var end = DateTime.now();
@@ -1622,7 +1660,7 @@ class DataApiDog {
         var msg =
             '😡 😡 The response is not 200; it is ${resp.statusCode}, NOT GOOD, throwing up !! 🥪 🥙 🌮  😡 ${resp.body}';
         pp(msg);
-        final gex =  GeoException(
+        final gex = GeoException(
             message: 'Bad status code: ${resp.statusCode} - ${resp.body}',
             url: mUrl,
             translationKey: 'serverProblem',

@@ -426,10 +426,9 @@ class RealmSyncApi with ChangeNotifier {
     orgGeofenceQuery = realmRemote.query<mrm.GeofenceEvent>(
         "organizationId == \$0", [organizationId]);
     orgGeofenceQuery.changes.listen((event) {
+      pp('$mm changes for orgGeofenceQuery delivered: ${event.results.length}');
       final list = <mrm.GeofenceEvent>[];
       for (final element in event.results) {
-        pp('$mm changes for orgGeofenceQuery delivered: ${event.results.length}');
-
         list.add(element);
       }
       _orgGeoCont.sink.add(list);
@@ -439,7 +438,6 @@ class RealmSyncApi with ChangeNotifier {
         "projectId == \$0", [projectId]);
     projectGeofenceQuery.changes.listen((event) {
       pp('$mm changes for projectGeofenceQuery delivered: ${event.results.length}');
-
       final list = <mrm.GeofenceEvent>[];
       for (final element in event.results) {
         list.add(element);
@@ -619,6 +617,19 @@ class RealmSyncApi with ChangeNotifier {
       list.add(value);
     }
     pp('$mm project query found: ${list.length}');
+    if (list.isNotEmpty) {
+      return list.first;
+    }
+    return null;
+  }
+  mrm.Organization? getOrganization(String organizationId) {
+    final query =
+    realmRemote.query<mrm.Organization>("organizationId == \$0", [organizationId]);
+    final list = <mrm.Organization>[];
+    for (final value in query.toList()) {
+      list.add(value);
+    }
+    pp('$mm Organization query found: ${list.length}');
     if (list.isNotEmpty) {
       return list.first;
     }
@@ -985,6 +996,13 @@ class RealmSyncApi with ChangeNotifier {
         settings.add(value);
       }
     });
+    final List<mrm.Organization> orgs = [];
+    realmRemote.write(() {
+      var res = realmRemote.all<mrm.Organization>();
+      for (var value in res) {
+        orgs.add(value);
+      }
+    });
     final List<mrm.ProjectPosition> positions = [];
     realmRemote.write(() {
       var res = realmRemote.all<mrm.ProjectPosition>();
@@ -1008,6 +1026,7 @@ class RealmSyncApi with ChangeNotifier {
     });
 
     pp('$mm Check results of registration: 🍎🍎 '
+        '\n $uu organizations: ${orgs.length} '
         '\n $uu users: ${users.length} '
         '\n $uu settings: ${settings.length} '
         '\n $uu subscriptions: ${subscriptions.length} '
@@ -1252,10 +1271,9 @@ class RealmSyncApi with ChangeNotifier {
   }
 
   List<mrm.ActivityModel> getOrganizationActivities(
-      {required String organizationId, required int numberOfHours}) {
-    final map = getStartEndDatesFromHours(numberOfHours: numberOfHours);
+      {required String organizationId}) {
     final result = realmRemote.query<mrm.ActivityModel>(
-        "organizationId == \$0 AND date >= \$1", [organizationId, map.$1]);
+        "organizationId == \$0", [organizationId]);
     final list = <mrm.ActivityModel>[];
     final resList = result.toList();
     for (final value in resList) {
@@ -1263,6 +1281,20 @@ class RealmSyncApi with ChangeNotifier {
     }
     px('$mm Activities found in Realm: ${list.length}');
     _orgActivityCont.sink.add(list);
+
+    return list;
+  }
+  List<mrm.GeofenceEvent> getOrganizationGeofenceEvents(
+      {required String organizationId}) {
+    final result = realmRemote.query<mrm.GeofenceEvent>(
+        "organizationId == \$0", [organizationId]);
+    final list = <mrm.GeofenceEvent>[];
+    final resList = result.toList();
+    for (final value in resList) {
+      list.add(value);
+    }
+    px('$mm GeofenceEvents found in Realm: ${list.length}');
+    _orgGeoCont.sink.add(list);
 
     return list;
   }

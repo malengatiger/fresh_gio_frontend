@@ -143,7 +143,7 @@ class TopCardListState extends State<TopCardList> {
         });
       });
 
-      widget.realmSyncApi.activityStream.listen((event) {
+      widget.realmSyncApi.orgActivityStream.listen((event) {
         pp('$mm activityStream delivered ${event.length}');
         setState(() {
           events = event.length;
@@ -153,7 +153,7 @@ class TopCardListState extends State<TopCardList> {
       widget.realmSyncApi.userStream.listen((event) {
         pp('$mm userStream delivered ${event.length}');
         setState(() {
-          projects = event.length;
+          members = event.length;
         });
       });
 

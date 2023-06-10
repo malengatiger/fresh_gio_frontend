@@ -79,8 +79,6 @@ class Initializer {
         await realmSyncApi.setSubscriptions(
             organizationId: sett.organizationId!, countryId: null, startDate: m.$1, projectId: null);
       }
-      theGreatGeofencer = TheGreatGeofencer( prefsOGx, realmSyncApi,dataApiDog);
-
     } else {
       if (ok) {
         await realmSyncApi.setSubscriptions(
@@ -91,12 +89,12 @@ class Initializer {
       }
     }
 
+    theGreatGeofencer = TheGreatGeofencer( prefsOGx, realmSyncApi,dataApiDog);
     //todo - dataHandler might not be needed
     dataHandler =
         IsolateDataHandler(prefsOGx, appAuth, cacheManager, realmSyncApi);
     pollingControl = IosPollingControl(dataHandler);
 
-    //todo - dataHandler might not be needed
     projectBloc = ProjectBloc(dataApiDog, cacheManager, dataHandler);
     userBloc = UserBloc(dataApiDog, cacheManager, dataHandler);
 
@@ -125,7 +123,7 @@ class Initializer {
 
     if (settings.organizationId != null) {
       pp('$mx heavyLifting ✅; _buildGeofences starting ..................');
-      theGreatGeofencer.buildGeofences();
+      theGreatGeofencer.buildGeofences(organizationId: settings.organizationId!);
     }
 
     pp('$mx organizationDataRefresh starting ........................');

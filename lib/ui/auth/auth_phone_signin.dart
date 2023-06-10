@@ -19,6 +19,7 @@ import '../../library/data/country.dart';
 import '../../library/data/user.dart' as ur;
 import '../../library/functions.dart';
 import '../../../realm_data/data/schemas.dart' as mrm;
+import '../../library/geofence/the_great_geofencer.dart';
 
 
 class AuthPhoneSignIn extends StatefulWidget {
@@ -101,10 +102,15 @@ class AuthPhoneSignInState extends State<AuthPhoneSignIn>
   }
 
   void _onSignedIn(ur.User user) async {
-    pp('$mm _onSignedIn ... user: ${user.toJson()}, starting dataHandler');
+    pp('$mm _onSignedIn ... user: ${user.toJson()}, starting realmSyncApi.setSubscriptions and Geofencer');
+
     await initializer.initializeGioServices();
-    realmSyncApi = RealmSyncApi();
-    dataHandler.getOrganizationData();
+
+    await realmSyncApi.setSubscriptions(organizationId: user.organizationId!,
+        countryId: user.countryId, projectId: null, startDate: null);
+
+    await theGreatGeofencer.buildGeofences(organizationId: user.organizationId!);
+
     if (mounted) {
       Navigator.of(context).pop(user);
     }
