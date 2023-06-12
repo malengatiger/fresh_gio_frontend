@@ -39,11 +39,11 @@ class IntroPageViewerPortrait extends StatefulWidget {
     required this.prefsOGx,
     required this.dataApiDog,
     required this.cacheManager,
-    required this.isolateHandler,
+    // required this.isolateHandler,
     required this.fcmBloc,
     required this.organizationBloc,
     required this.projectBloc,
-    required this.dataHandler,
+    // required this.dataHandler,
     required this.geoUploader,
     required this.cloudStorageBloc,
     required this.firebaseAuth,
@@ -54,11 +54,11 @@ class IntroPageViewerPortrait extends StatefulWidget {
   final PrefsOGx prefsOGx;
   final DataApiDog dataApiDog;
   final CacheManager cacheManager;
-  final IsolateDataHandler isolateHandler;
+  // final IsolateDataHandler isolateHandler;
   final FCMBloc fcmBloc;
   final OrganizationBloc organizationBloc;
   final ProjectBloc projectBloc;
-  final IsolateDataHandler dataHandler;
+  // final IsolateDataHandler dataHandler;
   final GeoUploader geoUploader;
   final CloudStorageBloc cloudStorageBloc;
   final FirebaseAuth firebaseAuth;
@@ -141,7 +141,6 @@ class IntroPageViewerPortraitState extends State<IntroPageViewerPortrait>
               duration: const Duration(milliseconds: 500),
               child: DashboardKhaya(
                 dataApiDog: widget.dataApiDog,
-                dataHandler: widget.isolateHandler,
                 fcmBloc: widget.fcmBloc,
                 organizationBloc: widget.organizationBloc,
                 projectBloc: widget.projectBloc,

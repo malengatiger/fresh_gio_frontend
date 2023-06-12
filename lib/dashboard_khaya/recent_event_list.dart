@@ -267,6 +267,7 @@ class RecentActivitiesHorizontal extends StatefulWidget {
 
 class _RecentActivitiesHorizontalState extends State<RecentActivitiesHorizontal> {
 
+  final mm = '🌼🌼🌼🌼🌼🌼🌼🌼 RecentActivitiesHorizontal: ';
   bool busy = false;
   @override
   void initState() {
@@ -278,11 +279,6 @@ class _RecentActivitiesHorizontalState extends State<RecentActivitiesHorizontal>
     setState(() {
       busy = true;
     });
-    widget.realmSyncApi.setSubscriptions(
-        organizationId: widget.organizationId,
-        countryId: null,
-        projectId: widget.projectId,
-        startDate: widget.startDate);
     setState(() {
       busy = false;
     });

@@ -145,9 +145,6 @@ class ProjectMediaTimelineState extends State<ProjectMediaTimeline>
     var numberOfDays = settings.numberOfDays;
     var startDate = DateTime.now().subtract(Duration(days: numberOfDays!)).toUtc().toIso8601String();
 
-    realmSyncApi.setSubscriptions(organizationId: project.organizationId!,
-        countryId: null, projectId: projectSelected!.projectId, startDate: startDate);
-
     realmSyncApi.photoStream.listen((event) {
       photos = event;
       _consolidateItems();

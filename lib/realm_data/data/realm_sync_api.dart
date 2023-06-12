@@ -5,6 +5,7 @@ import 'package:freshgio/device_location/device_location_bloc.dart';
 import 'package:freshgio/library/api/prefs_og.dart';
 import 'package:freshgio/library/bloc/geo_exception.dart';
 import 'package:freshgio/library/bloc/old_to_realm.dart';
+import 'package:freshgio/library/cache_manager.dart';
 import 'package:freshgio/library/emojis.dart';
 import 'package:freshgio/library/errors/error_handler.dart';
 import 'package:freshgio/library/functions.dart';
@@ -111,13 +112,18 @@ class RealmSyncApi with ChangeNotifier {
 
   Stream<List<mrm.Audio>> get organizationAudioStream => _orgAudioCont.stream;
 
+  final StreamController<List<mrm.User>> _orgUserStreamController =
+      StreamController.broadcast();
+
+  Stream<List<mrm.User>> get organizationUserStream => _orgUserStreamController.stream;
+
   final StreamController<List<mrm.SettingsModel>> _settingsCont =
       StreamController.broadcast();
 
   Stream<List<mrm.SettingsModel>> get settingsStream => _settingsCont.stream;
 
   final StreamController<List<mrm.Organization>> _orgsCont =
-  StreamController.broadcast();
+      StreamController.broadcast();
 
   Stream<List<mrm.Organization>> get organizationStream => _orgsCont.stream;
 
@@ -172,6 +178,30 @@ class RealmSyncApi with ChangeNotifier {
       StreamController.broadcast();
 
   Stream<List<mrm.City>> get cityStream => _cityCont.stream;
+  //queries
+  late RealmResults<mrm.SettingsModel> settingsQuery;
+  late RealmResults<mrm.User> orgUsersQuery;
+  late RealmResults<mrm.ActivityModel> orgActivitiesQuery;
+  late RealmResults<mrm.Project> orgProjectsQuery;
+  late RealmResults<mrm.Photo> photosQuery;
+  late RealmResults<mrm.Audio> audiosQuery;
+  late RealmResults<mrm.Video> videosQuery;
+  late RealmResults<mrm.ProjectPosition> positionsQuery;
+  late RealmResults<mrm.ProjectPolygon> polygonsQuery;
+  late RealmResults<mrm.City> countryCitiesQuery;
+  late RealmResults<mrm.Country> allCountriesQuery;
+  late RealmResults<mrm.Photo> orgPhotosQuery;
+  late RealmResults<mrm.Video> orgVideosQuery;
+  late RealmResults<mrm.Audio> orgAudiosQuery;
+  late RealmResults<mrm.ActivityModel> projectActivitiesQuery;
+  late RealmResults<mrm.GeofenceEvent> orgGeofenceQuery;
+  late RealmResults<mrm.GeofenceEvent> projectGeofenceQuery;
+  late RealmResults<mrm.ProjectPosition> orgPositionsQuery;
+  late RealmResults<mrm.ProjectPolygon> orgPolygonsQuery;
+  late RealmResults<mrm.GioSubscription> orgSubscriptionQuery;
+  late RealmResults<mrm.Rating> orgRatingsQuery;
+  late RealmResults<mrm.Rating> projectRatingsQuery;
+  late RealmResults<mrm.Organization> organizationsQuery;
 
   var initialized = false;
 
@@ -242,10 +272,10 @@ class RealmSyncApi with ChangeNotifier {
     return true;
   }
 
-  Future setSubscriptions(
-      {required String organizationId,
-      required String? countryId,
+  Future setOrganizationSubscriptions(
+      {required String? organizationId,
       required String? projectId,
+      required String? countryId,
       required String? startDate}) async {
     try {
       if (!initialized) {
@@ -255,56 +285,131 @@ class RealmSyncApi with ChangeNotifier {
       final count = realmRemote.subscriptions.length;
       pp('$mm Existing subscriptions: $count !');
 
-      await _updateSubscriptions(
+      await _updateOrganizationSubscriptions(
           organizationId: organizationId,
-          countryId: countryId,
           projectId: projectId,
+          countryId: countryId,
           startDate: startDate);
-      pp('$mm Fresh subscriptions updated with organizationId: 😡 😡 😡 $organizationId - country: $countryId');
       return;
-
-      pp('$mm ${E.heartGreen}${E.heartGreen}${E.heartGreen}${E.heartGreen} No need to update Realm subscriptions');
     } catch (e) {
-      pp('$mm ${E.redDot}${E.redDot}${E.redDot}${E.redDot} Problem setting up subscriptions to Realm: $e');
+      pp('$mm ${E.redDot}${E.redDot}${E.redDot}${E.redDot} '
+          'Problem setting up subscriptions to Realm: $e');
     }
   }
 
-  late RealmResults<mrm.SettingsModel> settingsQuery;
-  late RealmResults<mrm.User> orgUsersQuery;
-  late RealmResults<mrm.ActivityModel> orgActivitiesQuery;
-  late RealmResults<mrm.Project> orgProjectsQuery;
-  late RealmResults<mrm.Photo> photosQuery;
-  late RealmResults<mrm.Audio> audiosQuery;
-  late RealmResults<mrm.Video> videosQuery;
-  late RealmResults<mrm.ProjectPosition> positionsQuery;
-  late RealmResults<mrm.ProjectPolygon> polygonsQuery;
-  late RealmResults<mrm.City> countryCitiesQuery;
-  late RealmResults<mrm.Country> allCountriesQuery;
-  late RealmResults<mrm.Photo> orgPhotosQuery;
-  late RealmResults<mrm.Video> orgVideosQuery;
-  late RealmResults<mrm.Audio> orgAudiosQuery;
-  late RealmResults<mrm.ActivityModel> projectActivitiesQuery;
-  late RealmResults<mrm.GeofenceEvent> orgGeofenceQuery;
-  late RealmResults<mrm.GeofenceEvent> projectGeofenceQuery;
-  late RealmResults<mrm.ProjectPosition> orgPositionsQuery;
-  late RealmResults<mrm.ProjectPolygon> orgPolygonsQuery;
-  late RealmResults<mrm.GioSubscription> orgSubscriptionQuery;
-  late RealmResults<mrm.Rating> orgRatingsQuery;
-  late RealmResults<mrm.Rating> projectRatingsQuery;
-  late RealmResults<mrm.Organization> organizationsQuery;
-
-
-  Future _updateSubscriptions(
+  Future _updateOrganizationSubscriptions(
       {required String? organizationId,
-      required String? countryId,
       required String? projectId,
+      required String? countryId,
       required String? startDate}) async {
+
+    var start = DateTime.now();
+    var user = await prefsOGx.getUser();
+    countryCitiesQuery =
+        realmRemote.query<mrm.City>("countryId == \$0", [countryId]);
+    countryCitiesQuery.changes.listen((event) {
+      //pp('$mm changes for countryCitiesQuery delivered: ${event.results.length}');
+      final list = <mrm.City>[];
+      for (final element in event.results) {
+        list.add(element);
+      }
+      _cityCont.sink.add(list);
+    });
+
+    allCountriesQuery = realmRemote.all<mrm.Country>();
+    allCountriesQuery.changes.listen((event) {
+      //pp('$mm changes for allCountriesQuery delivered: ${event.results.length}');
+      final list = <mrm.Country>[];
+      for (final element in event.results) {
+        list.add(element);
+      }
+      _countryCont.sink.add(list);
+    });
+    photosQuery = realmRemote.query<mrm.Photo>("projectId == \$0", [projectId]);
+    photosQuery.changes.listen((event) {
+      //pp('$mm changes for photosQuery delivered: ${event.results.length}');
+
+      final list = <mrm.Photo>[];
+      for (final element in event.results) {
+        list.add(element);
+      }
+      _photoCont.sink.add(list);
+    });
+
+    audiosQuery = realmRemote.query<mrm.Audio>("projectId == \$0", [projectId]);
+    audiosQuery.changes.listen((event) {
+      //pp('$mm changes for audiosQuery delivered: ${event.results.length}');
+      final list = <mrm.Audio>[];
+      for (final element in event.results) {
+        list.add(element);
+      }
+      _audioCont.sink.add(list);
+    });
+
+    videosQuery = realmRemote.query<mrm.Video>("projectId == \$0", [projectId]);
+    videosQuery.changes.listen((event) {
+      //pp('$mm changes for videosQuery delivered: ${event.results.length}');
+
+      final list = <mrm.Video>[];
+      for (final element in event.results) {
+        list.add(element);
+      }
+      _videoCont.sink.add(list);
+    });
+
+    projectGeofenceQuery =
+        realmRemote.query<mrm.GeofenceEvent>("projectId == \$0", [projectId]);
+    projectGeofenceQuery.changes.listen((event) {
+      //pp('$mm changes for projectGeofenceQuery delivered: ${event.results.length}');
+      final list = <mrm.GeofenceEvent>[];
+      for (final element in event.results) {
+        list.add(element);
+      }
+      _geoCont.sink.add(list);
+    });
+    //
+    positionsQuery =
+        realmRemote.query<mrm.ProjectPosition>("projectId == \$0", [projectId]);
+    positionsQuery.changes.listen((event) {
+      final list = <mrm.ProjectPosition>[];
+      for (final element in event.results) {
+        //pp('$mm changes for positionsQuery delivered: ${event.results.length}');
+
+        list.add(element);
+      }
+      _positionsCont.sink.add(list);
+    });
+    polygonsQuery =
+        realmRemote.query<mrm.ProjectPolygon>("projectId == \$0", [projectId]);
+    polygonsQuery.changes.listen((event) {
+      final list = <mrm.ProjectPolygon>[];
+      for (final element in event.results) {
+        //pp('$mm changes for positionsQuery delivered: ${event.results.length}');
+
+        list.add(element);
+      }
+      _polCont.sink.add(list);
+    });
+    //
+    projectActivitiesQuery =
+        realmRemote.query<mrm.ActivityModel>("projectId == \$0", [projectId]);
+    projectActivitiesQuery.changes.listen((event) {
+      final list = <mrm.ActivityModel>[];
+      for (final element in event.results) {
+        //pp('$mm changes for projectActivitiesQuery delivered: ${event.results.length}');
+        list.add(element);
+      }
+      _activityCont.sink.add(list);
+    });
+
+    projectRatingsQuery =
+        realmRemote.query<mrm.Rating>("projectId == \$0", [projectId]);
 
     organizationsQuery = realmRemote
         .query<mrm.Organization>("organizationId == \$0", [organizationId]);
     organizationsQuery.changes.listen((event) {
       final list = <mrm.Organization>[];
-      pp('$mm changes for organizationsQuery delivered: ${event.results.length}');
+      ////pp('$mm changes for organizationsQuery delivered: ${event.results.length}');
       for (final element in event.results) {
         list.add(element);
       }
@@ -324,7 +429,7 @@ class RealmSyncApi with ChangeNotifier {
     orgUsersQuery =
         realmRemote.query<mrm.User>("organizationId == \$0", [organizationId]);
     orgUsersQuery.changes.listen((event) {
-      pp('$mm changes for orgUsersQuery delivered: ${event.results.length}');
+      //pp('$mm changes for orgUsersQuery delivered: ${event.results.length}');
       final list = <mrm.User>[];
       for (final element in event.results) {
         list.add(element);
@@ -332,42 +437,10 @@ class RealmSyncApi with ChangeNotifier {
       _userCont.sink.add(list);
     });
 
-    countryCitiesQuery =
-        realmRemote.query<mrm.City>("countryId == \$0", [countryId]);
-    countryCitiesQuery.changes.listen((event) {
-      pp('$mm changes for countryCitiesQuery delivered: ${event.results.length}');
-      final list = <mrm.City>[];
-      for (final element in event.results) {
-        list.add(element);
-      }
-      _cityCont.sink.add(list);
-    });
-
-    allCountriesQuery = realmRemote.all<mrm.Country>();
-    allCountriesQuery.changes.listen((event) {
-      pp('$mm changes for allCountriesQuery delivered: ${event.results.length}');
-      final list = <mrm.Country>[];
-      for (final element in event.results) {
-        list.add(element);
-      }
-      _countryCont.sink.add(list);
-    });
-
-    photosQuery = realmRemote.query<mrm.Photo>("projectId == \$0", [projectId]);
-    photosQuery.changes.listen((event) {
-      pp('$mm changes for photosQuery delivered: ${event.results.length}');
-
-      final list = <mrm.Photo>[];
-      for (final element in event.results) {
-        list.add(element);
-      }
-      _photoCont.sink.add(list);
-    });
-
     orgPhotosQuery =
-        realmRemote.query<mrm.Photo>("organizationId == \$0", [projectId]);
+        realmRemote.query<mrm.Photo>("organizationId == \$0", [organizationId]);
     orgPhotosQuery.changes.listen((event) {
-      pp('$mm changes for orgPhotosQuery delivered: ${event.results.length}');
+      //pp('$mm changes for orgPhotosQuery delivered: ${event.results.length}');
 
       final list = <mrm.Photo>[];
       for (final element in event.results) {
@@ -376,21 +449,10 @@ class RealmSyncApi with ChangeNotifier {
       _orgPhotoCont.sink.add(list);
     });
 
-    videosQuery = realmRemote.query<mrm.Video>("projectId == \$0", [projectId]);
-    videosQuery.changes.listen((event) {
-      pp('$mm changes for videosQuery delivered: ${event.results.length}');
-
-      final list = <mrm.Video>[];
-      for (final element in event.results) {
-        list.add(element);
-      }
-      _videoCont.sink.add(list);
-    });
-
     orgVideosQuery =
-        realmRemote.query<mrm.Video>("organizationId == \$0", [projectId]);
+        realmRemote.query<mrm.Video>("organizationId == \$0", [organizationId]);
     orgVideosQuery.changes.listen((event) {
-      pp('$mm changes for orgVideosQuery delivered: ${event.results.length}');
+      //pp('$mm changes for orgVideosQuery delivered: ${event.results.length}');
 
       final list = <mrm.Video>[];
       for (final element in event.results) {
@@ -399,22 +461,10 @@ class RealmSyncApi with ChangeNotifier {
       _orgVideoCont.sink.add(list);
     });
 
-    audiosQuery = realmRemote.query<mrm.Audio>("projectId == \$0", [projectId]);
-
-    audiosQuery.changes.listen((event) {
-      pp('$mm changes for audiosQuery delivered: ${event.results.length}');
-
-      final list = <mrm.Audio>[];
-      for (final element in event.results) {
-        list.add(element);
-      }
-      _audioCont.sink.add(list);
-    });
-
-    orgAudiosQuery = realmRemote
-        .query<mrm.Audio>("organizationId == \$0", [projectId, startDate]);
+    orgAudiosQuery =
+        realmRemote.query<mrm.Audio>("organizationId == \$0", [organizationId]);
     orgAudiosQuery.changes.listen((event) {
-      pp('$mm changes for orgAudiosQuery delivered: ${event.results.length}');
+      //pp('$mm changes for orgAudiosQuery delivered: ${event.results.length}');
 
       final list = <mrm.Audio>[];
       for (final element in event.results) {
@@ -423,10 +473,10 @@ class RealmSyncApi with ChangeNotifier {
       _orgAudioCont.sink.add(list);
     });
 
-    orgGeofenceQuery = realmRemote.query<mrm.GeofenceEvent>(
-        "organizationId == \$0", [organizationId]);
+    orgGeofenceQuery = realmRemote
+        .query<mrm.GeofenceEvent>("organizationId == \$0", [organizationId]);
     orgGeofenceQuery.changes.listen((event) {
-      pp('$mm changes for orgGeofenceQuery delivered: ${event.results.length}');
+      //pp('$mm changes for orgGeofenceQuery delivered: ${event.results.length}');
       final list = <mrm.GeofenceEvent>[];
       for (final element in event.results) {
         list.add(element);
@@ -434,33 +484,10 @@ class RealmSyncApi with ChangeNotifier {
       _orgGeoCont.sink.add(list);
     });
 
-    projectGeofenceQuery = realmRemote.query<mrm.GeofenceEvent>(
-        "projectId == \$0", [projectId]);
-    projectGeofenceQuery.changes.listen((event) {
-      pp('$mm changes for projectGeofenceQuery delivered: ${event.results.length}');
-      final list = <mrm.GeofenceEvent>[];
-      for (final element in event.results) {
-        list.add(element);
-      }
-      _geoCont.sink.add(list);
-    });
-
-    positionsQuery =
-        realmRemote.query<mrm.ProjectPosition>("projectId == \$0", [projectId]);
-    positionsQuery.changes.listen((event) {
-      final list = <mrm.ProjectPosition>[];
-      for (final element in event.results) {
-        pp('$mm changes for positionsQuery delivered: ${event.results.length}');
-
-        list.add(element);
-      }
-      _positionsCont.sink.add(list);
-    });
-
     orgPositionsQuery = realmRemote
         .query<mrm.ProjectPosition>("organizationId == \$0", [organizationId]);
     orgPositionsQuery.changes.listen((event) {
-      pp('$mm changes for orgPositionsQuery delivered: ${event.results.length}');
+      //pp('$mm changes for orgPositionsQuery delivered: ${event.results.length}');
       final list = <mrm.ProjectPosition>[];
       for (final element in event.results) {
         list.add(element);
@@ -468,21 +495,10 @@ class RealmSyncApi with ChangeNotifier {
       _orgPositionsCont.sink.add(list);
     });
 
-    polygonsQuery =
-        realmRemote.query<mrm.ProjectPolygon>("projectId == \$0", [projectId]);
-    polygonsQuery.changes.listen((event) {
-      pp('$mm changes for polygonsQuery delivered: ${event.results.length}');
-      final list = <mrm.ProjectPolygon>[];
-      for (final element in event.results) {
-        list.add(element);
-      }
-      _polCont.sink.add(list);
-    });
-
     orgPolygonsQuery = realmRemote
         .query<mrm.ProjectPolygon>("organizationId == \$0", [organizationId]);
     orgPolygonsQuery.changes.listen((event) {
-      pp('$mm changes for orgPolygonsQuery delivered: ${event.results.length}');
+      //pp('$mm changes for orgPolygonsQuery delivered: ${event.results.length}');
       final list = <mrm.ProjectPolygon>[];
       for (final element in event.results) {
         list.add(element);
@@ -493,7 +509,7 @@ class RealmSyncApi with ChangeNotifier {
     orgActivitiesQuery = realmRemote
         .query<mrm.ActivityModel>("organizationId == \$0", [organizationId]);
     orgActivitiesQuery.changes.listen((event) {
-      pp('$mm changes for orgActivitiesQuery delivered: ${event.results.length}');
+      //pp('$mm changes for orgActivitiesQuery delivered: ${event.results.length}');
       final list = <mrm.ActivityModel>[];
       for (final element in event.results) {
         list.add(element);
@@ -501,22 +517,10 @@ class RealmSyncApi with ChangeNotifier {
       _orgActivityCont.sink.add(list);
     });
 
-    projectActivitiesQuery =
-        realmRemote.query<mrm.ActivityModel>("projectId == \$0", [projectId]);
-
-    projectActivitiesQuery.changes.listen((event) {
-      final list = <mrm.ActivityModel>[];
-      for (final element in event.results) {
-        pp('$mm changes for projectActivitiesQuery delivered: ${event.results.length}');
-        list.add(element);
-      }
-      _activityCont.sink.add(list);
-    });
-
     orgProjectsQuery = realmRemote
         .query<mrm.Project>("organizationId == \$0", [organizationId]);
     orgProjectsQuery.changes.listen((event) {
-      pp('$mm changes for orgProjectsQuery delivered: ${event.results.length}');
+      //pp('$mm changes for orgProjectsQuery delivered: ${event.results.length}');
       final list = <mrm.Project>[];
       for (final element in event.results) {
         list.add(element);
@@ -524,25 +528,46 @@ class RealmSyncApi with ChangeNotifier {
       _projectCont.sink.add(list);
     });
 
-    orgRatingsQuery = realmRemote.query<mrm.Rating>(
-        "organizationId == \$0", [organizationId, startDate]);
-    projectRatingsQuery = realmRemote
-        .query<mrm.Rating>("projectId == \$0", [organizationId, startDate]);
+    orgRatingsQuery = realmRemote
+        .query<mrm.Rating>("organizationId == \$0", [organizationId]);
 
     orgSubscriptionQuery = realmRemote
         .query<mrm.GioSubscription>("organizationId == \$0", [organizationId]);
 
-    //update all subs
+    // Start sync
+    //update all PROJECT subs
     realmRemote.subscriptions
         .update((MutableSubscriptionSet mutableSubscriptions) {
+      mutableSubscriptions.add(allCountriesQuery,
+          name: 'all_countries', update: true);
+      mutableSubscriptions.add(countryCitiesQuery,
+          name: 'country_cities', update: true);
+
+      mutableSubscriptions.add(projectActivitiesQuery,
+          name: 'proj_activities', update: true);
+
+      mutableSubscriptions.add(projectGeofenceQuery,
+          name: 'proj_geofences', update: true);
+
+      mutableSubscriptions.add(projectRatingsQuery,
+          name: 'proj_ratings', update: true);
+
+      mutableSubscriptions.add(videosQuery, name: 'proj_videos', update: true);
+
+      mutableSubscriptions.add(photosQuery, name: 'proj_photos', update: true);
+
+      mutableSubscriptions.add(audiosQuery, name: 'proj_audios', update: true);
+
+      mutableSubscriptions.add(positionsQuery,
+          name: 'proj_positions', update: true);
+
+      mutableSubscriptions.add(polygonsQuery,  name: 'proj_polygons', update: true);
+
       mutableSubscriptions.add(orgSubscriptionQuery,
           name: 'org_subscriptions', update: true);
 
       mutableSubscriptions.add(organizationsQuery,
           name: 'organizations', update: true);
-
-      mutableSubscriptions.add(projectActivitiesQuery,
-          name: 'proj_activities', update: true);
 
       mutableSubscriptions.add(orgPhotosQuery,
           name: 'org_photos', update: true);
@@ -553,19 +578,7 @@ class RealmSyncApi with ChangeNotifier {
       mutableSubscriptions.add(orgAudiosQuery,
           name: 'org_audios', update: true);
 
-      mutableSubscriptions.add(projectGeofenceQuery,
-          name: 'proj_geofences', update: true);
-
-      mutableSubscriptions.add(projectRatingsQuery,
-          name: 'proj_ratings', update: true);
-
-      mutableSubscriptions.add(allCountriesQuery,
-          name: 'all_countries', update: true);
-
       mutableSubscriptions.add(orgUsersQuery, name: 'org_users', update: true);
-
-      mutableSubscriptions.add(countryCitiesQuery,
-          name: 'country_cities', update: true);
 
       mutableSubscriptions.add(videosQuery, name: 'proj_videos', update: true);
 
@@ -575,11 +588,6 @@ class RealmSyncApi with ChangeNotifier {
 
       mutableSubscriptions.add(orgGeofenceQuery,
           name: 'org_geofence_events', update: true);
-      mutableSubscriptions.add(positionsQuery,
-          name: 'proj_positions', update: true);
-
-      mutableSubscriptions.add(polygonsQuery,
-          name: 'proj_polygons', update: true);
 
       mutableSubscriptions.add(orgPositionsQuery,
           name: 'org_positions', update: true);
@@ -601,12 +609,13 @@ class RealmSyncApi with ChangeNotifier {
 
     // Sync all subscriptions
     await realmRemote.subscriptions.waitForSynchronization();
-    for (final sub in realmRemote.subscriptions) {
-      pp('$mm 😡 😡 😡 Realm Subscription: ${sub.name} - ${sub.objectClassName}');
-    }
+    var end = DateTime.now();
+    var diffMs = end.difference(start).inMilliseconds;
+    var diffSecs = end.difference(start).inSeconds;
 
-    pp('\n$mm RealmApp waitForSynchronization completed OK  🥬 🥬 🥬 🥬: '
-        'Queries Subscribed: ${realmRemote.subscriptions.length} 🔵 RIGHT ANSWER : 24\n');
+    pp('$mm RealmApp ORGANIZATION waitForSynchronization completed OK  🥬 🥬 🥬 🥬: '
+        ' 🛎🛎Queries Subscribed: ${realmRemote.subscriptions.length} '
+        '🔵🔵 ELAPSED TIME : $diffMs milliseconds; or $diffSecs seconds');
   }
 
   mrm.Project? getProject(String projectId) {
@@ -622,9 +631,10 @@ class RealmSyncApi with ChangeNotifier {
     }
     return null;
   }
+
   mrm.Organization? getOrganization(String organizationId) {
-    final query =
-    realmRemote.query<mrm.Organization>("organizationId == \$0", [organizationId]);
+    final query = realmRemote
+        .query<mrm.Organization>("organizationId == \$0", [organizationId]);
     final list = <mrm.Organization>[];
     for (final value in query.toList()) {
       list.add(value);
@@ -885,12 +895,6 @@ class RealmSyncApi with ChangeNotifier {
     pp('\n\n$mm 🔵🐦🔵🐦🔵🐦 ORGANIZATION REGISTRATION starting '
         'for ${organization.name} in ${organization.countryName}.......\n');
 
-    await setSubscriptions(
-        organizationId: organization.organizationId!,
-        countryId: organization.countryId,
-        projectId: null,
-        startDate: null);
-
     try {
       final base = getBaseSettings();
       final sett = mrm.SettingsModel(
@@ -947,9 +951,16 @@ class RealmSyncApi with ChangeNotifier {
 
       pp('\n$mm 🔵🐦🔵🐦🔵🐦 The Big Realm Transaction about to launch:!!!! 🔵🐦🔵🐦🔵🐦 '
           '... will update subscriptions with org: ${organization.name}');
+      final startDate = DateTime.now()
+          .subtract(const Duration(hours: 3))
+          .toUtc()
+          .toIso8601String();
 
-      await setSubscriptions(organizationId: organization.organizationId!,
-          countryId: organization.countryId!, projectId: null, startDate: null);
+      await setOrganizationSubscriptions(
+          organizationId: organization.organizationId!,
+          projectId: null, countryId: null,
+          startDate: null);
+
       final bigResult = await realmRemote.writeAsync(() {
         realmRemote.add<mrm.User>(user);
         realmRemote.add<mrm.Organization>(organization);
@@ -963,20 +974,12 @@ class RealmSyncApi with ChangeNotifier {
       pp('\n\n$mm 🔵🐦🔵🐦🔵🐦 The Eagle has landed! 🍎🍎 bigResult: $bigResult');
       _checkFinalResults(organization);
       //
+
+      await prefsOGx.saveUser(user);
       final end = DateTime.now();
       final deltaInSeconds = end.difference(start).inSeconds;
       pp('\n$mm 🔵🐦🔵🐦🔵🐦 $uu Time elapsed for Registration: $deltaInSeconds seconds');
       pp('\n$mm 🔵🐦🔵🐦🔵🐦 ORGANIZATION REGISTERED; YEBO!!!! 🔵🐦🔵🐦🔵🐦\n\n');
-
-      final startDate = DateTime.now()
-          .subtract(const Duration(hours: 3))
-          .toUtc()
-          .toIso8601String();
-      setSubscriptions(
-          organizationId: organization.organizationId!,
-          countryId: organization.countryId,
-          projectId: null,
-          startDate: startDate);
 
       return user;
     } catch (e) {
@@ -1219,6 +1222,17 @@ class RealmSyncApi with ChangeNotifier {
     return 1;
   }
 
+  Future<void> updateUser({required mrm.User user, required String imageUrl,
+    required String thumbUrl}) async {
+
+    await realmRemote.writeAsync(() {
+      user.imageUrl = imageUrl;
+      user.thumbnailUrl = thumbUrl;
+      realmRemote.add<mrm.User>(user, update: true);
+    });
+    getUsers(user.organizationId!);
+    pp('$mm user has been updated');
+  }
   void deleteCountries() {
     pp('$mm DELETE all countries ...');
     realmRemote.write(() {
@@ -1265,29 +1279,33 @@ class RealmSyncApi with ChangeNotifier {
       list.add(value);
     }
     px('$mm users found in Realm: ${list.length}');
-    _userCont.sink.add(list);
+    _orgUserStreamController.sink.add(list);
 
     return list;
   }
 
+
+
   List<mrm.ActivityModel> getOrganizationActivities(
       {required String organizationId}) {
-    final result = realmRemote.query<mrm.ActivityModel>(
-        "organizationId == \$0", [organizationId]);
+    final result = realmRemote
+        .query<mrm.ActivityModel>("organizationId == \$0", [organizationId]);
     final list = <mrm.ActivityModel>[];
     final resList = result.toList();
     for (final value in resList) {
       list.add(value);
     }
     px('$mm Activities found in Realm: ${list.length}');
+    list.sort((a, b) => b.date!.compareTo(a.date!));
     _orgActivityCont.sink.add(list);
 
     return list;
   }
+
   List<mrm.GeofenceEvent> getOrganizationGeofenceEvents(
       {required String organizationId}) {
-    final result = realmRemote.query<mrm.GeofenceEvent>(
-        "organizationId == \$0", [organizationId]);
+    final result = realmRemote
+        .query<mrm.GeofenceEvent>("organizationId == \$0", [organizationId]);
     final list = <mrm.GeofenceEvent>[];
     final resList = result.toList();
     for (final value in resList) {
@@ -1298,10 +1316,11 @@ class RealmSyncApi with ChangeNotifier {
 
     return list;
   }
+
   List<mrm.ProjectPosition> getOrganizationPositions(
       {required String organizationId}) {
-    final result = realmRemote.query<mrm.ProjectPosition>(
-        "organizationId == \$0", [organizationId]);
+    final result = realmRemote
+        .query<mrm.ProjectPosition>("organizationId == \$0", [organizationId]);
     final list = <mrm.ProjectPosition>[];
     final resList = result.toList();
     for (final value in resList) {
@@ -1312,10 +1331,82 @@ class RealmSyncApi with ChangeNotifier {
 
     return list;
   }
+
+  List<mrm.ProjectPolygon> getOrganizationPolygons(
+      {required String organizationId}) {
+    final result = realmRemote
+        .query<mrm.ProjectPolygon>("organizationId == \$0", [organizationId]);
+    final list = <mrm.ProjectPolygon>[];
+    final resList = result.toList();
+    for (final value in resList) {
+      list.add(value);
+    }
+    px('$mm ProjectPolygons found in Realm: ${list.length}');
+    _orgPolCont.sink.add(list);
+
+    return list;
+  }
+
+  List<mrm.Photo> getOrganizationPhotos({required String organizationId}) {
+    final result =
+        realmRemote.query<mrm.Photo>("organizationId == \$0", [organizationId]);
+    final list = <mrm.Photo>[];
+    final resList = result.toList();
+    for (final value in resList) {
+      list.add(value);
+    }
+    px('$mm org Photos found in Realm: ${list.length}');
+    _orgPhotoCont.sink.add(list);
+
+    return list;
+  }
+
+  List<mrm.Video> getOrganizationVideos({required String organizationId}) {
+    final result =
+        realmRemote.query<mrm.Video>("organizationId == \$0", [organizationId]);
+    final list = <mrm.Video>[];
+    final resList = result.toList();
+    for (final value in resList) {
+      list.add(value);
+    }
+    px('$mm org Videos found in Realm: ${list.length}');
+    _orgVideoCont.sink.add(list);
+
+    return list;
+  }
+
+  List<mrm.Audio> getOrganizationAudios({required String organizationId}) {
+    final result =
+        realmRemote.query<mrm.Audio>("organizationId == \$0", [organizationId]);
+    final list = <mrm.Audio>[];
+    final resList = result.toList();
+    for (final value in resList) {
+      list.add(value);
+    }
+    px('$mm org Audios found in Realm: ${list.length}');
+    _orgAudioCont.sink.add(list);
+
+    return list;
+  }
+
+  List<mrm.User> getOrganizationUsers({required String organizationId}) {
+    final result =
+        realmRemote.query<mrm.User>("organizationId == \$0", [organizationId]);
+    final list = <mrm.User>[];
+    final resList = result.toList();
+    for (final value in resList) {
+      list.add(value);
+    }
+    px('$mm org Users found in Realm: ${list.length}');
+    _orgUserStreamController.sink.add(list);
+
+    return list;
+  }
+
   mrm.SettingsModel? getLatestOrganizationSettings(
       {required String organizationId}) {
-    final result = realmRemote.query<mrm.SettingsModel>(
-        "organizationId == \$0", [organizationId]);
+    final result = realmRemote
+        .query<mrm.SettingsModel>("organizationId == \$0", [organizationId]);
     final list = <mrm.SettingsModel>[];
     final resList = result.toList();
     for (final value in resList) {
@@ -1323,7 +1414,7 @@ class RealmSyncApi with ChangeNotifier {
     }
     px('$mm SettingsModels found in Realm: ${list.length}');
     if (list.isNotEmpty) {
-      list.sort((a,b) => b.created!.compareTo(a.created!));
+      list.sort((a, b) => b.created!.compareTo(a.created!));
       _settingsCont.sink.add(list);
       return list.first;
     }

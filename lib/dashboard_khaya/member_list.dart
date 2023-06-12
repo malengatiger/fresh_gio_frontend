@@ -18,7 +18,7 @@ class MemberList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<mrm.User>>(
-        stream: realmSyncApi.userStream,
+        stream: realmSyncApi.organizationUserStream,
         builder: (ctx, snapshot) {
           var users = <mrm.User>[];
           if (snapshot.hasData) {

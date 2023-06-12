@@ -77,7 +77,7 @@ class DashboardKhaya extends StatefulWidget {
       required this.projectBloc,
       required this.prefsOGx,
       required this.cacheManager,
-      required this.dataHandler,
+      // required this.dataHandler,
       required this.geoUploader,
       required this.cloudStorageBloc,
       required this.firebaseAuth,
@@ -92,7 +92,7 @@ class DashboardKhaya extends StatefulWidget {
   final ProjectBloc projectBloc;
   final PrefsOGx prefsOGx;
   final CacheManager cacheManager;
-  final IsolateDataHandler dataHandler;
+  // final IsolateDataHandler dataHandler;
   final GeoUploader geoUploader;
   final CloudStorageBloc cloudStorageBloc;
   final auth.FirebaseAuth firebaseAuth;
@@ -230,108 +230,6 @@ class DashboardKhayaState extends State<DashboardKhaya>
     _getData();
   }
 
-  // void _listenForFCM() async {
-  //   var android = UniversalPlatform.isAndroid;
-  //   var ios = UniversalPlatform.isIOS;
-  //   // if (android || ios) {
-  //   pp('$mm 🍎 🍎 _listen to FCM message streams ... 🍎 🍎');
-  //   geofenceSubscriptionFCM =
-  //       widget.fcmBloc.geofenceStream.listen((GeofenceEvent event) async {
-  //     pp('$mm: 🍎geofenceSubscriptionFCM: 🍎 GeofenceEvent: '
-  //         'user ${event.userName} arrived: ${event.projectName} ');
-  //     _handleGeofenceEvent(event);
-  //   });
-  //
-  //   activitySubscription =
-  //       widget.fcmBloc.activityStream.listen((ActivityModel event) async {
-  //     pp('\n\n$mm: 🍎activitySubscription delivered 🍎 ActivityModel: '
-  //         ' ${event.date} \n');
-  //     events.insert(0, event);
-  //     totalEvents++;
-  //     if (mounted) {
-  //       setState(() {});
-  //     }
-  //   });
-  //
-  //   projectSubscriptionFCM =
-  //       widget.fcmBloc.projectStream.listen((Project project) async {
-  //     _getCachedData();
-  //     if (mounted) {
-  //       pp('$mm: 🍎 🍎 project arrived: ${project.name} ... 🍎 🍎');
-  //       setState(() {});
-  //     }
-  //   });
-  //
-  //   settingsSubscriptionFCM =
-  //       widget.fcmBloc.settingsStream.listen((settings) async {
-  //     pp('$mm: 🍎🍎 settingsSubscriptionFCM: settings arrived with themeIndex: ${settings.themeIndex}... 🍎🍎');
-  //     _handleNewSettings(settings);
-  //   });
-  //
-  //   userSubscriptionFCM = widget.fcmBloc.userStream.listen((u) async {
-  //     pp('$mm: 🍎 🍎 user arrived... 🍎 🍎');
-  //     if (u.userId == user!.userId!) {
-  //       user = u;
-  //     }
-  //     _getCachedData();
-  //   });
-  //
-  //   photoSubscriptionFCM = widget.fcmBloc.photoStream.listen((photo) async {
-  //     pp('$mm: 🍎 🍎 photoSubscriptionFCM photo arrived... 🍎 🍎');
-  //     _getCachedData();
-  //   });
-  //
-  //   videoSubscriptionFCM =
-  //       widget.fcmBloc.videoStream.listen((Video message) async {
-  //     pp('$mm: 🍎 🍎 videoSubscriptionFCM video arrived... 🍎 🍎');
-  //     _getCachedData();
-  //   });
-  //
-  //   audioSubscriptionFCM =
-  //       widget.fcmBloc.audioStream.listen((Audio message) async {
-  //     pp('$mm: 🍎 🍎 audioSubscriptionFCM audio arrived... 🍎 🍎');
-  //     _getCachedData();
-  //   });
-  //
-  //   projectPositionSubscriptionFCM = widget.fcmBloc.projectPositionStream
-  //       .listen((ProjectPosition message) async {
-  //     pp('$mm: 🍎 🍎 projectPositionSubscriptionFCM position arrived... 🍎 🍎');
-  //     _getCachedData();
-  //   });
-  //
-  //   projectPolygonSubscriptionFCM = widget.fcmBloc.projectPolygonStream
-  //       .listen((ProjectPolygon message) async {
-  //     pp('$mm: 🍎 🍎 projectPolygonSubscriptionFCM polygon arrived... 🍎 🍎');
-  //     _getCachedData();
-  //     if (mounted) {}
-  //   });
-  //
-  //   dataBagSubscription =
-  //       widget.organizationBloc.dataBagStream.listen((DataBag bag) async {
-  //     pp('$mm: 🍎 🍎 dataBagStream bag arrived... 🍎 🍎');
-  //     if (bag.projects != null) {
-  //       projects = bag.projects!;
-  //       totalProjects = projects.length;
-  //     }
-  //     if (bag.users != null) {
-  //       users = bag.users!;
-  //       totalUsers = users.length;
-  //     }
-  //     if (bag.activityModels != null) {
-  //       events = bag.activityModels!;
-  //       totalEvents = events.length;
-  //     }
-  //     if (mounted) {
-  //       setState(() {});
-  //     }
-  //   });
-  //
-  //   refreshSub = widget.refreshBloc.refreshStream.listen((event) {
-  //     pp('$mm refreshStream delivered a command, call getData with forceRefresh = true ... ');
-  //     _getData();
-  //   });
-  // }
-
   var images = <Image>[];
   late SettingsModel settingsModel;
 
@@ -340,45 +238,40 @@ class DashboardKhayaState extends State<DashboardKhaya>
     user = OldToRealm.getUser(u!);
     settingsModel = await widget.prefsOGx.getSettings();
     setState(() {});
-    _setTexts();
+    await _setTexts();
+    _getData();
   }
 
   void _getData() async {
     try {
-      pp('$mm _getData ...................................... forceRefresh: $forceRefresh  ');
+      pp('$mm _getData ......................organizationId: ${settingsModel.organizationId}  ');
       setState(() {
         busy = true;
       });
-      final m =
-          await getStartEndDates(numberOfDays: settingsModel.numberOfDays!);
-      // final bag = await widget.organizationBloc.getOrganizationData(
-      //     organizationId: user!.organizationId!,
-      //     forceRefresh: true,
-      //     startDate: m['startDate']!,
-      //     endDate: m['endDate']!);
-      final counts = await widget.dataApiDog.getOrganizationDataCounts(
-          settingsModel.organizationId!,
-          m['startDate']!,
-          m['endDate']!,
-          settingsModel.activityStreamHours!);
 
-      totalProjects = counts.projects!;
-      totalEvents = counts.activities!;
-      totalUsers = counts.users!;
+      realmSyncApi.organizationUserStream.listen((event) {
+        pp('$mm organizationUserStream delivered ${event.length}');
+        setState(() {
+          users = event;
+          totalUsers = event.length;
+        });
+      });
+      realmSyncApi.projectStream.listen((event) {
+        pp('$mm projectStream delivered ${event.length}');
+        setState(() {
+          projects = event;
+          totalProjects = event.length;
+        });
+      });
+      realmSyncApi.orgActivityStream.listen((event) {
+        pp('$mm orgActivityStream delivered ${event.length}');
+        setState(() {
+          events = event;
+          totalEvents = event.length;
+        });
+      });
 
-      // events = await organizationBloc.getCachedOrganizationActivity(
-      //     organizationId: settingsModel.organizationId!,
-      //     hours: settingsModel.activityStreamHours!);
-      // users = bag.users!;
-      //
-      // totalEvents = events.length;
-      /*
-      projectId: "someId",
-    name: "Studio 3T",
-    organization: "829c3f4e-eaa7-42b5-9a38-7d57f097b074"
-       */
-      // totalUsers = users.length;
-      // totalProjects = projects.length;
+
     } catch (e) {
       if (mounted) {
         pp('$mm showSnack with error : $e');
@@ -399,7 +292,7 @@ class DashboardKhayaState extends State<DashboardKhaya>
   late String deviceType, startDate;
   late SettingsModel settings;
 
-  void _setTexts() async {
+  Future _setTexts() async {
     settings = await widget.prefsOGx.getSettings();
     loadingDataText =
         await translator.translate('loadingActivities', settings.locale!);
@@ -426,7 +319,6 @@ class DashboardKhayaState extends State<DashboardKhaya>
     pp(' 🌀🌀🌀🌀 .................. _navigateToSettings to Settings ....');
     navigateWithScale(
         SettingsMain(
-          dataHandler: widget.dataHandler,
           dataApiDog: widget.dataApiDog,
           prefsOGx: widget.prefsOGx,
           cacheManager: widget.cacheManager,
@@ -497,7 +389,6 @@ class DashboardKhayaState extends State<DashboardKhaya>
           prefsOGx: widget.prefsOGx,
           dataApiDog: widget.dataApiDog,
           cacheManager: widget.cacheManager,
-          isolateHandler: widget.dataHandler,
           fcmBloc: widget.fcmBloc,
           organizationBloc: widget.organizationBloc,
           geoUploader: widget.geoUploader,
@@ -562,7 +453,10 @@ class DashboardKhayaState extends State<DashboardKhaya>
 
   void _onDeviceUserTapped() {
     pp('✅✅✅ _onDeviceUserTapped ...');
+    if (user != null) {
+      pp('$mm USER PROPERTIES: ${user!.name} ${user!.cellphone} ${user!.email}');
 
+    }
     navigateWithScale(
         UserEditMain(
           user,
@@ -655,7 +549,6 @@ class DashboardKhayaState extends State<DashboardKhaya>
   onSettingsChanged() {
     navigateWithScale(
         SettingsMain(
-            dataHandler: widget.dataHandler,
             dataApiDog: widget.dataApiDog,
             prefsOGx: widget.prefsOGx,
             organizationBloc: widget.organizationBloc,
@@ -1322,7 +1215,7 @@ class SubTitleWidget extends StatelessWidget {
           ),
           Text(
             '$number',
-            style: myTextStyleMediumLargeWithOpacity(context, 0.25),
+            style: myTextStyleMediumLargeWithOpacity(context, 0.5),
           )
         ],
       ),

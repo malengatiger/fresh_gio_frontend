@@ -198,7 +198,7 @@ class DataRefresher {
       }
       _check();
     } catch (e) {
-      pp('$mm $e');
+      pp('$e');
       final gex = GeoException(
           message: 'Unable to obtain Firebase token',
           translationKey: 'networkProblem',
@@ -417,7 +417,7 @@ class DataRefresher {
 
     for (var element in bag.users!) {
       if (element.userId == user!.userId) {
-        await prefsOGx.saveUser(element);
+        //await prefsOGx.saveUser(element);
         fcmBloc.userController.sink.add(element);
       }
     }
@@ -454,7 +454,7 @@ Future<DataBag> refreshOrganizationDataInIsolate(
         activityStreamHours: activityStreamHours,
         token: token);
   } catch (e) {
-    pp('$mm We have an issue here. $e');
+    pp('We have an issue here. $e');
   }
   if (bag == null) {
     pp('$xz Bag not returned from getOrganizationDataZippedFile ');

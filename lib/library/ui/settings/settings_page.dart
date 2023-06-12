@@ -18,8 +18,8 @@ import '../../data/user.dart';
 import '../../functions.dart';
 import '../../generic_functions.dart';
 
-class SettingsMobile extends StatefulWidget {
-  const SettingsMobile(
+class SettingsPage extends StatefulWidget {
+  const SettingsPage(
       {Key? key,
       required this.isolateHandler,
       required this.dataApiDog,
@@ -35,10 +35,10 @@ class SettingsMobile extends StatefulWidget {
   final RealmSyncApi realmSyncApi;
 
   @override
-  SettingsMobileState createState() => SettingsMobileState();
+  SettingsPageState createState() => SettingsPageState();
 }
 
-class SettingsMobileState extends State<SettingsMobile>
+class SettingsPageState extends State<SettingsPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
 

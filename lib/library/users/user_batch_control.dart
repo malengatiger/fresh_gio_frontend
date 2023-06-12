@@ -8,7 +8,7 @@ import 'package:freshgio/library/bloc/geo_uploader.dart';
 import 'package:freshgio/library/bloc/old_to_realm.dart';
 import 'package:freshgio/library/data/user.dart';
 import 'package:freshgio/library/generic_functions.dart';
-import 'package:freshgio/library/users/avatar_editor.dart';
+import 'package:freshgio/library/users/user_profile_picture_editor.dart';
 import 'package:freshgio/ui/activity/user_profile_card.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:responsive_builder/responsive_builder.dart';

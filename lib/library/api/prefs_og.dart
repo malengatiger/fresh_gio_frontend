@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:freshgio/library/bloc/old_to_realm.dart';
 import 'package:freshgio/library/data/questionnaire.dart';
 import 'package:freshgio/library/data/subscription.dart';
 import 'package:get_storage/get_storage.dart';
@@ -79,9 +80,9 @@ class PrefsOGx {
     }
   }
 
-  Future saveUser(old.User user) async {
-    final s = jsonEncode(user.toJson());
-    await box.write('user', s);
+  Future saveUser(mrm.User user) async {
+    final m = OldToRealm.getUserString(user);
+    await box.write('user', m);
     pp("\n\n$mm saveUser SAVED: 🌽 ${user.name}\n");
     return null;
   }

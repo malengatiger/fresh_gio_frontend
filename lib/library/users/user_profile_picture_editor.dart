@@ -4,23 +4,20 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-
 import 'package:freshgio/library/api/prefs_og.dart';
 import 'package:freshgio/library/bloc/fcm_bloc.dart';
 import 'package:freshgio/library/bloc/geo_exception.dart';
-import 'package:freshgio/library/cache_manager.dart';
+import 'package:freshgio/library/bloc/old_to_realm.dart';
 import 'package:freshgio/library/errors/error_handler.dart';
 import 'package:freshgio/library/functions.dart';
+import 'package:freshgio/realm_data/data/realm_sync_api.dart';
+import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../l10n/translation_handler.dart';
-import '../api/data_api_og.dart';
 import '../data/settings_model.dart';
-import '../data/user.dart';
 import '../generic_functions.dart';
-import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
 
 class UserProfilePictureEditor extends StatefulWidget {
   const UserProfilePictureEditor(
@@ -28,15 +25,17 @@ class UserProfilePictureEditor extends StatefulWidget {
       : super(key: key);
   final mrm.User user;
   final bool goToDashboardWhenDone;
+
   @override
-  UserProfilePictureEditorState createState() => UserProfilePictureEditorState();
+  UserProfilePictureEditorState createState() =>
+      UserProfilePictureEditorState();
 }
 
 class UserProfilePictureEditorState extends State<UserProfilePictureEditor>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   final ImagePicker _picker = ImagePicker();
-  final mm = '🐳🐳🐳🐳🐳🐳 AvatarEditor: ';
+  final mm = '🐳🐳🐳🐳🐳🐳 UserProfilePictureEditor: ';
   final height = 800.0, width = 600.0;
   File? finalFile;
 
@@ -75,6 +74,7 @@ class UserProfilePictureEditorState extends State<UserProfilePictureEditor>
   }
 
   late SettingsModel sett;
+
   Future _setTexts() async {
     sett = await prefsOGx.getSettings();
     profileInstruction =
@@ -87,7 +87,7 @@ class UserProfilePictureEditorState extends State<UserProfilePictureEditor>
     memberProfileUploaded =
         await translator.translate('memberProfileUploaded', sett.locale!);
     memberProfileUploadFailed =
-    await translator.translate('memberProfileUploadFailed', sett.locale!);
+        await translator.translate('memberProfileUploadFailed', sett.locale!);
     if (mounted) {
       setState(() {});
     }
@@ -118,7 +118,7 @@ class UserProfilePictureEditorState extends State<UserProfilePictureEditor>
         maxHeight: height,
         maxWidth: width,
         imageQuality: 100,
-        preferredCameraDevice: CameraDevice.rear);
+        preferredCameraDevice: CameraDevice.front);
 
     imageFile = File(xFile!.path);
 
@@ -158,32 +158,14 @@ class UserProfilePictureEditorState extends State<UserProfilePictureEditor>
     var m = (size / 1024 / 1024).toStringAsFixed(2);
     pp('$mm Picture taken is $m MB in size');
 
-    var res = await _uploadToCloud(mFile.path, tFile.path);
-    if (res == 9) {
-      setState(() {
-        busy = false;
-      });
-      if (mounted) {
-        showToast(
-            context: context,
-            message: memberProfileUploadFailed == null?
-            'Photo upload failed, please try again in a minute':memberProfileUploadFailed!,
-            backgroundColor: Theme.of(context).primaryColor,
-            textStyle: myTextStyleMedium(context),
-            toastGravity: ToastGravity.TOP,
-            duration: const Duration(seconds: 5));
-      }
-      return;
-    }
+    await _uploadToCloud(mFile.path, tFile.path);
 
     pp('\n\n$mm Picture taken has been uploaded OK');
     setState(() {
       _showOldPhoto = false;
       _showNewPhoto = true;
     });
-
   }
-
 
   final photoStorageName = 'geoUserPhotos';
   String? url, thumbUrl;
@@ -209,7 +191,7 @@ class UserProfilePictureEditorState extends State<UserProfilePictureEditor>
       taskSnapshot = await uploadTask.whenComplete(() {});
       url = await taskSnapshot.ref.getDownloadURL();
       pp('$mm file url is available, meaning that upload is complete: \n$url');
-      _printSnapshot(taskSnapshot, 'PHOTO');
+      //_printSnapshot(taskSnapshot, 'PHOTO');
       // upload thumbnail here
       final thumbName =
           'thumbnail@${widget.user.organizationId}@${widget.user.userId}@${DateTime.now().toUtc().toIso8601String()}.${'jpg'}';
@@ -223,41 +205,38 @@ class UserProfilePictureEditorState extends State<UserProfilePictureEditor>
       final thumbTaskSnapshot = await thumbUploadTask.whenComplete(() {});
       thumbUrl = await thumbTaskSnapshot.ref.getDownloadURL();
       pp('$mm thumbnail file url is available, meaning that upload is complete: \n$thumbUrl');
-      _printSnapshot(thumbTaskSnapshot, 'PHOTO THUMBNAIL');
-      widget.user.imageUrl = url;
-      widget.user.thumbnailUrl = thumbUrl;
-      widget.user.updated = DateTime.now().toUtc().toIso8601String();
-      await _updateDatabase();
-      return 0;
+      //_printSnapshot(thumbTaskSnapshot, 'PHOTO THUMBNAIL');
+      var ff = await prefsOGx.getUser();
+      pp('$mm ......... about to update database ...');
+      await _updateDatabase(userId: widget.user.userId!, imageUrl: url!, thumbUrl: thumbUrl!);
     } catch (e) {
       pp(e);
-      if (e is GeoException) {
-        errorHandler.handleError(exception: e);
-        final msg =
-            await translator.translate(e.geTranslationKey(), sett.locale!);
-        if (mounted) {
-          showToast(
-              padding: 16,
-              textStyle: myTextStyleMedium(context),
-              backgroundColor: Theme.of(context).primaryColor,
-              duration: const Duration(seconds: 5),
-              message: msg,
-              context: context);
-          setState(() {
-            busy = false;
-          });
-        }
+      if (mounted) {
+        showToast(
+            padding: 16,
+            textStyle: myTextStyleMedium(context),
+            backgroundColor: Theme.of(context).primaryColor,
+            duration: const Duration(seconds: 5),
+            message: '$e',
+            context: context);
       }
     }
+    setState(() {
+      busy = false;
+    });
   }
 
-  Future _updateDatabase() async {
-    pp('\n\n$mm User database entry to be updated: ${widget.user.name}\n');
+  Future _updateDatabase(
+      {required String userId,
+      required String imageUrl,
+      required String thumbUrl}) async {
+    pp('\n\n$mm User database entry to be updated: ${widget.user.name} - ${widget.user.imageUrl}\n');
 
     try {
-      await dataApiDog.updateUser(widget.user);
-
+      var realmUser = realmSyncApi.getUser(userId);
+      realmSyncApi.updateUser(user: realmUser!, imageUrl: imageUrl, thumbUrl: thumbUrl);
       pp('\n\n$mm User photo and thumbnail uploaded and database updated\n');
+
       if (mounted) {
         showToast(
             padding: 16,

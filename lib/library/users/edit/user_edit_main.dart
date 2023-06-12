@@ -12,6 +12,7 @@ import '../../bloc/project_bloc.dart';
 import '../../cache_manager.dart';
 import '../../data/project.dart';
 import '../../data/user.dart';
+import '../../functions.dart';
 import 'user_edit_mobile.dart';
 import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
 
@@ -37,8 +38,13 @@ class UserEditMain extends StatelessWidget {
       required this.geoUploader,
       required this.cloudStorageBloc});
 
+  final mm = '🐦🐦🐦🐦🐦🐦UserEditMain 🐦🐦';
   @override
   Widget build(BuildContext context) {
+    if (user != null) {
+      pp('$mm USER PROPERTIES: ${user!.name} ${user!.cellphone} ${user!.email}');
+
+    }
     return ScreenTypeLayout.builder(
       tablet: (ctx) {
         return OrientationLayoutBuilder(

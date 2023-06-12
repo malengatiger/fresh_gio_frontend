@@ -35,6 +35,7 @@ import 'package:freshgio/ui/audio/gio_audio_player.dart';
 import 'package:freshgio/ui/dashboard/photo_frame.dart';
 import 'package:freshgio/ui/intro/intro_main.dart';
 import 'package:freshgio/ui/subscription/subscription_selection.dart';
+import 'package:freshgio/utilities/sync_util.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
@@ -120,6 +121,7 @@ class TopCardListState extends State<TopCardList> {
       geofenceEvents = 0,
       areas = 0;
 
+  mrm.User? user;
   @override
   void initState() {
     super.initState();
@@ -135,7 +137,7 @@ class TopCardListState extends State<TopCardList> {
       setState(() {
         busy = true;
       });
-
+      var user = await prefsOGx.getUser();
       widget.realmSyncApi.projectStream.listen((event) {
         pp('$mm projectStream delivered ${event.length}');
         setState(() {
@@ -150,8 +152,8 @@ class TopCardListState extends State<TopCardList> {
         });
       });
 
-      widget.realmSyncApi.userStream.listen((event) {
-        pp('$mm userStream delivered ${event.length}');
+      widget.realmSyncApi.organizationUserStream.listen((event) {
+        pp('$mm organizationUserStream delivered ${event.length}');
         setState(() {
           members = event.length;
         });
@@ -193,13 +195,16 @@ class TopCardListState extends State<TopCardList> {
           geofenceEvents = event.length;
         });
       });
+      pp('$mm _getData ; readShit ............................. ..');
 
+      if (user != null) {
+        readShit(realmSyncApi, user.organizationId!);
+      }
     } catch (e) {
       pp(e);
     }
 
     if (mounted) {
-      pp('$mm _getData ; setting state ..');
       setState(() {
         busy = false;
       });
@@ -225,7 +230,8 @@ class TopCardListState extends State<TopCardList> {
   }
 
   @override
-  void dispose() {;
+  void dispose() {
+    ;
     super.dispose();
   }
 
@@ -352,7 +358,6 @@ class TopCardListState extends State<TopCardList> {
           context);
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -487,7 +492,6 @@ class TopCardListState extends State<TopCardList> {
                 ),
         ),
       ),
-
     ]);
   }
 
@@ -608,4 +612,3 @@ class DashboardTopCard extends StatelessWidget {
     );
   }
 }
-

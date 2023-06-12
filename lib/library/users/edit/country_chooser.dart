@@ -153,7 +153,9 @@ class _CountrySearchState extends State<CountrySearch> {
     return null;
   }
   void _close(mrm.Country country) {
+
     pp('$mm country selected: ${country.name}, popping out');
+    widget.onCountrySelected(country);
     Navigator.of(context).pop(country);
   }
 

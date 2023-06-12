@@ -92,8 +92,6 @@ class ProjectPolygonMapMobileState extends State<ProjectPolygonMapMobile>
       var p = await prefsOGx.getUser();
       user = OldToRealm.getUser(p!);
       var sett = await prefsOGx.getSettings();
-      await realmSyncApi.setSubscriptions(organizationId: sett.organizationId!,
-          countryId: p.countryId, projectId: widget.project.projectId, startDate: null);
       realmSyncApi.projectPositionStream.listen((event) {
         if (mounted) {
           setState(() {

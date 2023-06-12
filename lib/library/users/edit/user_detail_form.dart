@@ -22,7 +22,7 @@ import '../../data/user.dart' as ar;
 import '../../data/user.dart';
 import '../../functions.dart';
 import '../../generic_functions.dart';
-import '../avatar_editor.dart';
+import '../user_profile_picture_editor.dart';
 import '../full_user_photo.dart';
 import 'country_chooser.dart';
 import 'package:freshgio/realm_data/data/schemas.dart' as mrm;

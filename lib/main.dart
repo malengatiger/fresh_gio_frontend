@@ -152,6 +152,7 @@ import 'package:freshgio/splash/splash_page.dart';
 import 'package:freshgio/stitch/stitch_service.dart';
 import 'package:freshgio/ui/dashboard/dashboard_main.dart';
 import 'package:freshgio/ui/intro/intro_main.dart';
+import 'package:freshgio/utilities/sync_util.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:universal_platform/universal_platform.dart';
 
@@ -263,7 +264,7 @@ void showKillDialog({required String message, required BuildContext context}) {
       actions: <Widget>[
         TextButton(
           onPressed: () {
-            pp('$mm Navigator popping for the last time, Sucker! 🔵🔵🔵');
+            pp(' Navigator popping for the last time, Sucker! 🔵🔵🔵');
             var android = UniversalPlatform.isAndroid;
             var ios = UniversalPlatform.isIOS;
             if (android) {
@@ -285,7 +286,7 @@ StreamSubscription<String> listenForKill({required BuildContext context}) {
   pp('\n$mx Kill message; listen for KILL message ...... 🍎🍎🍎🍎 ......');
 
   var sub = fcmBloc.killStream.listen((event) {
-    pp('$mm Kill message arrived: 🍎🍎🍎🍎 $event 🍎🍎🍎🍎');
+    pp('Kill message arrived: 🍎🍎🍎🍎 $event 🍎🍎🍎🍎');
     try {
       showKillDialog(message: event, context: context);
     } catch (e) {
@@ -318,25 +319,24 @@ class LandingPageState extends State<LandingPage> {
   }
 
   Future initialize() async {
-    pp('$mx ...................... initialize .............🍎🍎🍎');
+    pp('$mx ...................... initialize ............. 🍎🍎🍎');
     final start = DateTime.now();
     setState(() {
       busy = true;
     });
-
+    await initializer.setupGio();
     try {
       final user = await widget.prefsOGx.getUser();
-      if (user != null) {
-        await initializer.setupGio();
-        final end = DateTime.now();
-        pp('$mx ................. initialization took: 🔆 ${end.difference(start).inMilliseconds} inMilliseconds 🔆');
-      } else {
-        await initializer.initializeGioServices();
+      if (user == null) {
         fbAuthedUser = null;
+      } else {
+        readShit(realmSyncApi, user.organizationId!);
       }
     } catch (e) {
       pp(e);
-      showSnackBar(message: 'Initialization failed', context: context);
+      if (mounted) {
+        showSnackBar(message: 'Initialization failed', context: context);
+      }
     }
 
     setState(() {
@@ -360,7 +360,6 @@ class LandingPageState extends State<LandingPage> {
         prefsOGx: prefsOGx,
         dataApiDog: dataApiDog,
         cacheManager: cacheManager,
-        isolateHandler: dataHandler,
         fcmBloc: fcmBloc,
         realmSyncApi: realmSyncApi,
         refreshBloc: refreshBloc,
@@ -374,7 +373,7 @@ class LandingPageState extends State<LandingPage> {
     } else {
       pp('$mx getWidget returning widget DashboardMain ..(fbAuthedUser == ✅)');
       return DashboardMain(
-        dataHandler: dataHandler,
+        // dataHandler: dataHandler,
         dataApiDog: dataApiDog,
         fcmBloc: fcmBloc,
         projectBloc: projectBloc,

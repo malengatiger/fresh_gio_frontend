@@ -3,8 +3,6 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:freshgio/library/api/data_api_og.dart';
-import 'package:freshgio/library/bloc/fcm_bloc.dart';
-import 'package:freshgio/library/bloc/isolate_handler.dart';
 import 'package:freshgio/library/data/settings_model.dart';
 import 'package:freshgio/realm_data/data/realm_sync_api.dart';
 
@@ -13,13 +11,14 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
 import '../../library/api/prefs_og.dart';
+import '../../library/bloc/old_to_realm.dart';
 import '../../library/bloc/theme_bloc.dart';
 import '../../library/cache_manager.dart';
-import '../../library/data/country.dart';
 import '../../library/data/user.dart' as ur;
 import '../../library/functions.dart';
 import '../../../realm_data/data/schemas.dart' as mrm;
 import '../../library/geofence/the_great_geofencer.dart';
+import '../../utilities/sync_util.dart';
 
 
 class AuthPhoneSignIn extends StatefulWidget {
@@ -105,13 +104,15 @@ class AuthPhoneSignInState extends State<AuthPhoneSignIn>
     pp('$mm _onSignedIn ... user: ${user.toJson()}, starting realmSyncApi.setSubscriptions and Geofencer');
 
     await initializer.initializeGioServices();
+    await realmSyncApi.setOrganizationSubscriptions(organizationId: user.organizationId!,
+       startDate: null, countryId: null, projectId: null);
 
-    await realmSyncApi.setSubscriptions(organizationId: user.organizationId!,
-        countryId: user.countryId, projectId: null, startDate: null);
+    readShit(realmSyncApi, user.organizationId!);
 
     await theGreatGeofencer.buildGeofences(organizationId: user.organizationId!);
 
     if (mounted) {
+      pp('$mm _onSignedIn ................................... about to pop!');
       Navigator.of(context).pop(user);
     }
   }
@@ -269,8 +270,8 @@ class _AuthPhoneSigninCardState extends State<AuthPhoneSigninCard> {
             user!.countryId = myCountry.countryId!;
           }
         }
-        await widget.prefsOGx.saveUser(user!);
-        await widget.cacheManager.addUser(user: user!);
+        await widget.prefsOGx.saveUser(OldToRealm.getUser(user!));
+        // await widget.cacheManager.addUser(user: user!);
         var settingsList = await widget.dataApiDog
             .getOrganizationSettings(user!.organizationId!);
         settingsList.sort((a, b) => b.created!.compareTo(a.created!));

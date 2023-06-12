@@ -36,7 +36,7 @@ class Initializer {
   final mx = '✅✅✅✅✅ Initializer: ✅';
 
   Future setupGio() async {
-    pp('\n\n$mx setupGio: ... setting up resources and blocs etc .............. ');
+    pp('$mx setupGio: ... setting up resources and blocs etc .............. ');
 
     await initializeGioServices();
     await heavyLifting();
@@ -44,7 +44,7 @@ class Initializer {
   }
 
   Future<void> initializeGioServices() async {
-    pp('\n\n$mx initializeGioServices: ... setting up resources and blocs etc .............. ');
+    pp('$mx initializeGioServices: ... setting up resources and blocs etc .............. ');
 
     await GetStorage.init(cacheName);
     prefsOGx = PrefsOGx();
@@ -69,27 +69,36 @@ class Initializer {
 
     realmSyncApi = RealmSyncApi();
     final sett = await prefsOGx.getSettings();
-    var ok = await realmSyncApi.initialize();
-
-
+    await realmSyncApi.initialize();
 
     if (sett.organizationId != null) {
       var m = getStartEndDatesFromDays(numberOfDays: sett.numberOfDays!);
-      if (ok) {
-        await realmSyncApi.setSubscriptions(
-            organizationId: sett.organizationId!, countryId: null, startDate: m.$1, projectId: null);
+      var user = await prefsOGx.getUser();
+      var proj = await prefsOGx.getProject();
+      String? projectId, countryId;
+      if (user != null) {
+        countryId = user.userId;
       }
+      if (proj != null) {
+        projectId = proj.projectId;
+      }
+      await realmSyncApi.setOrganizationSubscriptions(
+        organizationId: sett.organizationId!, countryId: countryId,
+        projectId: projectId,
+        startDate: m.$1,
+      );
     } else {
-      if (ok) {
-        await realmSyncApi.setSubscriptions(
-            organizationId: 'null', countryId: null, startDate: null, projectId: null);
-        final list = realmSyncApi.getCountries();
-        list.sort((a,b) => a.name!.compareTo(b.name!));
-        pp('\n$mx COUNTRIES LOADED: 🔵🔵🔵🔵🔵🔵🔵🔵🔵 ${list.length}');
-      }
+      await realmSyncApi.setOrganizationSubscriptions(
+        organizationId: null, countryId: null, projectId: null,
+        startDate: null,
+      );
     }
 
-    theGreatGeofencer = TheGreatGeofencer( prefsOGx, realmSyncApi,dataApiDog);
+    final list = realmSyncApi.getCountries();
+    list.sort((a, b) => a.name!.compareTo(b.name!));
+    pp('\n$mx COUNTRIES LOADED: 🔵🔵🔵🔵🔵🔵🔵🔵🔵 ${list.length}');
+
+    theGreatGeofencer = TheGreatGeofencer(prefsOGx, realmSyncApi, dataApiDog);
     //todo - dataHandler might not be needed
     dataHandler =
         IsolateDataHandler(prefsOGx, appAuth, cacheManager, realmSyncApi);
@@ -101,12 +110,11 @@ class Initializer {
     fcmBloc = FCMBloc(FirebaseMessaging.instance, cacheManager,
         locationRequestHandler, realmAppServices);
 
-    pp('$mx initializeGioServices: ...resources and blocs etc set up ok!  \n\n');
-    //testRealmJson();
+    pp('$mx initializeGioServices: ...resources and blocs etc set up ok!  \n');
   }
 
   Future heavyLifting() async {
-    pp('$mx Heavy lifting starting ....');
+    pp('$mx ................... Heavy lifting starting ....');
 
     final start = DateTime.now();
     final settings = await prefsOGx.getSettings();
@@ -115,6 +123,7 @@ class Initializer {
 
     pp('$mx heavyLifting: ✅;cacheManager initialization starting .................');
     await cacheManager.initialize();
+
     pp('$mx heavyLifting: ✅; fcm initialization starting .................');
     await fcmBloc.initialize();
 
@@ -123,27 +132,23 @@ class Initializer {
 
     if (settings.organizationId != null) {
       pp('$mx heavyLifting ✅; _buildGeofences starting ..................');
-      theGreatGeofencer.buildGeofences(organizationId: settings.organizationId!);
+      theGreatGeofencer.buildGeofences(
+          organizationId: settings.organizationId!);
     }
 
-    pp('$mx organizationDataRefresh starting ........................');
-    pp('$mx start with delay of 5 seconds before data refresh ..............');
-
-
-    if (settings.organizationId != null) {
-      pp('$mx heavyLifting: cloudStorageBloc.uploadEverything starting ...............');
-      //geoUploader.manageMediaUploads();
-      cloudStorageBloc.uploadEverything();
-    }
     pp('\n\n$mx  '
         'initializeGeo: Hive initialized Gio services. '
         '💜💜 Ready to rumble! Ali Bomaye!!');
     final end = DateTime.now();
+
     pp('$mx initializeGeo, heavyLifting: Time Elapsed: ${end.difference(start).inMilliseconds} '
         'milliseconds\n\n');
-    final sett = await prefsOGx.getSettings();
 
-    pp('$mx initializeGeo, heavyLifting: realmSyncApi to be initialized ...');
-
+    Future.delayed(const Duration(seconds: 30)).then((value) {
+      if (settings.organizationId != null) {
+        pp('$mx heavyLifting: cloudStorageBloc.uploadEverything starting ...............');
+        cloudStorageBloc.uploadEverything();
+      }
+    });
   }
 }

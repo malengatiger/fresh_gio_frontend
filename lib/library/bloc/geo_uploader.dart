@@ -7,6 +7,7 @@ import 'dart:ui';
 
 import 'package:freshgio/library/api/data_api_og.dart';
 import 'package:freshgio/library/api/prefs_og.dart';
+import 'package:freshgio/library/bloc/cloud_storage_bloc.dart';
 import 'package:freshgio/library/bloc/geo_exception.dart';
 import 'package:freshgio/library/bloc/old_to_realm.dart';
 import 'package:freshgio/library/bloc/organization_bloc.dart';
@@ -51,13 +52,30 @@ class GeoUploader {
 
   Future manageMediaUploads() async {
     pp('$xx ............ manageMediaUploads: starting ... 🔵🔵🔵');
+    var s = await prefsOGx.getUser();
+    if (s == null) {
+      return;
+    }
     try {
-      await realmSyncApi.initialize();
+      var user = await prefsOGx.getUser();
+      var proj = await prefsOGx.getProject();
+      String? projectId, countryId;
+      if (user != null) {
+        countryId = user.userId;
+      }
+      if (proj != null) {
+        projectId = proj.projectId;
+      }
+      await realmSyncApi.setOrganizationSubscriptions(
+          organizationId: s.organizationId!,
+          countryId: countryId, projectId: projectId,
+          startDate: null);
 
-      await uploadCachedPhotos();
-      await uploadCachedAudios();
-      await uploadCachedVideos();
+      await _uploadCachedPhotos();
+      await _uploadCachedAudios();
+      await _uploadCachedVideos();
       await uploadErrors();
+
       pp('$xx manageMediaUploads: 🥬🥬🥬🥬🥬🥬 '
           'completed and uploads done if needed. 🥬🥬🥬 '
           'should be Okey Dokey!');
@@ -73,9 +91,9 @@ class GeoUploader {
 
   Future<int> _retryUploads() async {
     await Future.delayed(const Duration(seconds: 5));
-    await uploadCachedPhotos();
-    await uploadCachedAudios();
-    await uploadCachedVideos();
+    await _uploadCachedPhotos();
+    await _uploadCachedAudios();
+    await _uploadCachedVideos();
 
     pp('$xx manageMediaUploads: RETRY seems to have worked !!! 🥬🥬🥬🥬🥬🥬 '
         'completed and uploads done if needed. 🥬🥬🥬 '
@@ -83,7 +101,7 @@ class GeoUploader {
     return 0;
   }
 
-  Future uploadCachedPhotos() async {
+  Future _uploadCachedPhotos() async {
     pp('$xx ................... checking for photo uploads ...');
     final photos = await cacheManager.getPhotosForUpload();
     if (photos.isEmpty) {
@@ -91,9 +109,6 @@ class GeoUploader {
     }
     var projectId = photos.first.projectId;
     var orgId = photos.first.organizationId;
-
-    await realmSyncApi.setSubscriptions(organizationId: orgId!,
-        countryId: null, projectId: projectId, startDate: null);
 
     pp('$xx ... ${photos.length} photosForUpload found. 🔵 🔵 🔵 Will upload now ...');
     int cnt = 0;
@@ -110,17 +125,13 @@ class GeoUploader {
     pp('$xx ... ${mPhotos.length} photosForUpload found after uploads.  🔴 If greater than zero, something not cool!');
   }
 
-  Future uploadCachedVideos() async {
+  Future _uploadCachedVideos() async {
     pp('$xx ... checking for video uploads ...');
     final videos = await cacheManager.getVideosForUpload();
     if (videos.isEmpty) {
       return;
     }
-    var projectId = videos.first.projectId;
-    var orgId = videos.first.organizationId;
 
-    await realmSyncApi.setSubscriptions(organizationId: orgId!,
-        countryId: null, projectId: projectId, startDate: null);
     pp('$xx ... ${videos.length} videosForUpload found. 🔵 🔵 🔵 Will upload now ...');
     int cnt = 0;
     final sett = await cacheManager.getSettings();
@@ -146,17 +157,12 @@ class GeoUploader {
     pp('$xx ... ${mVideos.length} videosForUpload found after uploads.  🔴 If greater than zero, something not cool!');
   }
 
-  Future uploadCachedAudios() async {
+  Future _uploadCachedAudios() async {
     pp('$xx ... checking for audio uploads ...');
     final audios = await cacheManager.getAudioForUpload();
     if (audios.isEmpty) {
       return;
     }
-    var projectId = audios.first.projectId;
-    var orgId = audios.first.organizationId;
-
-    await realmSyncApi.setSubscriptions(organizationId: orgId!,
-        countryId: null, projectId: projectId, startDate: null);
     pp('$xx ... ${audios.length} audiosForUpload found. 🔵 🔵 🔵 Will upload now ...');
     int cnt = 0;
     final sett = await cacheManager.getSettings();

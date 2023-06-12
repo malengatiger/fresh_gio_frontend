@@ -11,6 +11,7 @@ import 'package:freshgio/realm_data/data/realm_sync_api.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../l10n/translation_handler.dart';
+import '../../../utilities/sync_util.dart';
 import '../../api/prefs_og.dart';
 import '../../bloc/fcm_bloc.dart';
 import '../../bloc/theme_bloc.dart';
@@ -69,19 +70,6 @@ class SettingsFormState extends State<SettingsForm> {
 
   String? currentLocale;
 
-  @override
-  void initState() {
-    super.initState();
-    _setTexts();
-    _listenToFCM();
-    _getUser();
-  }
-
-  void _getUser() async {
-    pp('$mm 🍎🍎 ............. getting user from prefs ...');
-    user = await prefsOGx.getUser();
-  }
-
   String? fieldMonitorInstruction,
       maximumMonitoringDistance,
       maximumVideoLength,
@@ -102,13 +90,29 @@ class SettingsFormState extends State<SettingsForm> {
       refreshRateInMinutesText,
       enterRateInMinutes,
       hint;
+  @override
+  void initState() {
+    super.initState();
+    _listenToFCM();
+    _controlSteps();
+  }
+
+  void _controlSteps() async {
+    await _getUser();
+    await _setTexts();
+    await _setLanguage();
+    _setExistingSettings();
+  }
+
+  Future _getUser() async {
+    pp('$mm 🍎🍎 ............. getting user from prefs ...');
+    user = await prefsOGx.getUser();
+  }
 
   Future _setTexts() async {
     settingsModel = await prefsOGx.getSettings();
     currentLocale = settingsModel.locale!;
 
-    pp('$mm 🍎🍎 user is here, huh? 🌎 ${user!.name!}');
-    _setExistingSettings();
     final m1 =
         await translator.translate('maxVideoLessThan', settingsModel.locale!);
     maxVideoLessThan = m1.replaceAll('\$count', '120');
@@ -158,6 +162,10 @@ class SettingsFormState extends State<SettingsForm> {
     setState(() {});
   }
 
+  Future _setLanguage() async {
+
+  }
+
   void _listenToFCM() async {
     pp('$mm ... _listenToFCM settingsSubscriptionFCM ...');
 
@@ -176,41 +184,43 @@ class SettingsFormState extends State<SettingsForm> {
   }
 
   void _setExistingSettings() async {
-    if (settingsModel != null) {
       if (settingsModel.activityStreamHours == null ||
           settingsModel.activityStreamHours == 0) {
         settingsModel.activityStreamHours = 24;
         await prefsOGx.saveSettings(settingsModel);
       }
-    }
+
     settingsModel ??= getBaseSettings();
     settingsModel.organizationId = user!.organizationId!;
 
+    currentLocale = settingsModel.locale;
     currentThemeIndex = settingsModel.themeIndex!;
-    distController.text = '${settingsModel?.distanceFromProject}';
-    videoController.text = '${settingsModel?.maxVideoLengthInSeconds}';
-    audioController.text = '${settingsModel?.maxAudioLengthInMinutes}';
-    activityController.text = '${settingsModel?.activityStreamHours}';
-    daysController.text = '${settingsModel?.numberOfDays}';
-    refreshRateController.text = '${settingsModel?.refreshRateInMinutes}';
+    distController.text = '${settingsModel.distanceFromProject}';
+    videoController.text = '${settingsModel.maxVideoLengthInSeconds}';
+    audioController.text = '${settingsModel.maxAudioLengthInMinutes}';
+    activityController.text = '${settingsModel.activityStreamHours}';
+    daysController.text = '${settingsModel.numberOfDays}';
+    refreshRateController.text = '${settingsModel.refreshRateInMinutes}';
 
-    if (settingsModel?.locale != null) {
+    if (settingsModel.locale != null) {
       Locale newLocale = Locale(settingsModel.locale!);
       selectedLocale = newLocale;
       final m = LocaleAndTheme(
           themeIndex: settingsModel.themeIndex!, locale: newLocale);
       themeBloc.changeToLocale(m.locale.toString());
+      final lang = await getLanguageFromLocale(settingsModel.locale!);
+      _handleLocaleChange(newLocale, lang);
     }
 
-    if (settingsModel?.photoSize == 0) {
+    if (settingsModel.photoSize == 0) {
       photoSize = 0;
       groupValue = 0;
     }
-    if (settingsModel?.photoSize == 1) {
+    if (settingsModel.photoSize == 1) {
       photoSize = 1;
       groupValue = 1;
     }
-    if (settingsModel?.photoSize == 2) {
+    if (settingsModel.photoSize == 2) {
       photoSize = 0;
       groupValue = 2;
     }

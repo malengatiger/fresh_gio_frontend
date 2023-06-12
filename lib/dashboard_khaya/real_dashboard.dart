@@ -230,6 +230,15 @@ class RealDashboard extends StatelessWidget {
                           ),
                         ],
                       ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${user.organizationName}',
+                            style: myTextStyleSmall(context),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 12),
                       TopCardList(
                         organizationBloc: organizationBloc,

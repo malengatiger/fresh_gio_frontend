@@ -39,10 +39,13 @@ class IntroPageViewerLandscape extends StatefulWidget {
       required this.fcmBloc,
       required this.organizationBloc,
       required this.projectBloc,
-      required this.dataHandler,
+      // required this.dataHandler,
       required this.geoUploader,
       required this.cloudStorageBloc,
-      required this.firebaseAuth, required this.stitchService, required this.refreshBloc, required this.realmSyncApi})
+      required this.firebaseAuth,
+      required this.stitchService,
+      required this.refreshBloc,
+      required this.realmSyncApi})
       : super(key: key);
   final PrefsOGx prefsOGx;
   final DataApiDog dataApiDog;
@@ -50,15 +53,13 @@ class IntroPageViewerLandscape extends StatefulWidget {
   final FCMBloc fcmBloc;
   final OrganizationBloc organizationBloc;
   final ProjectBloc projectBloc;
-  final IsolateDataHandler dataHandler;
+  // final IsolateDataHandler dataHandler;
   final GeoUploader geoUploader;
   final CloudStorageBloc cloudStorageBloc;
   final FirebaseAuth firebaseAuth;
   final StitchService stitchService;
   final RefreshBloc refreshBloc;
   final RealmSyncApi realmSyncApi;
-
-
 
   @override
   State<IntroPageViewerLandscape> createState() =>
@@ -159,7 +160,6 @@ class IntroPageViewerLandscapeState extends State<IntroPageViewerLandscape>
                 child: DashboardMain(
                   dataApiDog: widget.dataApiDog,
                   fcmBloc: widget.fcmBloc,
-                  dataHandler: widget.dataHandler,
                   organizationBloc: widget.organizationBloc,
                   projectBloc: widget.projectBloc,
                   cloudStorageBloc: cloudStorageBloc,
@@ -228,11 +228,11 @@ class IntroPageViewerLandscapeState extends State<IntroPageViewerLandscape>
               prefsOGx: prefsOGx,
               dataApiDog: dataApiDog,
               cacheManager: cacheManager,
-              firebaseAuth: firebaseAuth, onUserRegistered: (u ) {
+              firebaseAuth: firebaseAuth,
+              onUserRegistered: (u) {
                 _navigateToDashboard();
-            },
+              },
             )));
-
   }
 
   onSelected(Locale p1, String p2) async {
@@ -253,7 +253,7 @@ class IntroPageViewerLandscapeState extends State<IntroPageViewerLandscape>
   Widget build(BuildContext context) {
     var brightness = MediaQuery.of(context).platformBrightness;
     bool isDarkMode = brightness == Brightness.dark;
-    var  color = getTextColorForBackground(Theme.of(context).primaryColor);
+    var color = getTextColorForBackground(Theme.of(context).primaryColor);
 
     if (isDarkMode) {
       color = Theme.of(context).primaryColor;

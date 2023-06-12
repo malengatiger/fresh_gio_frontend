@@ -21,7 +21,7 @@ class IntroMain extends StatefulWidget {
   final PrefsOGx prefsOGx;
   final DataApiDog dataApiDog;
   final CacheManager cacheManager;
-  final IsolateDataHandler isolateHandler;
+  // final IsolateDataHandler isolateHandler;
   final FCMBloc fcmBloc;
   final OrganizationBloc organizationBloc;
   final ProjectBloc projectBloc;
@@ -38,7 +38,7 @@ class IntroMain extends StatefulWidget {
     required this.prefsOGx,
     required this.dataApiDog,
     required this.cacheManager,
-    required this.isolateHandler,
+    // required this.isolateHandler,
     required this.fcmBloc,
     required this.organizationBloc,
     required this.projectBloc,
@@ -77,9 +77,7 @@ class IntroMainState extends State<IntroMain>
           prefsOGx: widget.prefsOGx,
           dataApiDog: widget.dataApiDog,
           cacheManager: widget.cacheManager,
-          dataHandler: widget.isolateHandler,
           projectBloc: widget.projectBloc,
-          isolateHandler: widget.isolateHandler,
           geoUploader: widget.geoUploader,
           refreshBloc: widget.refreshBloc,
           realmSyncApi: realmSyncApi,
@@ -98,11 +96,9 @@ class IntroMainState extends State<IntroMain>
               organizationBloc: widget.organizationBloc,
               firebaseAuth: widget.firebaseAuth,
               prefsOGx: widget.prefsOGx,
-              dataHandler: widget.isolateHandler,
               realmSyncApi: realmSyncApi,
               dataApiDog: widget.dataApiDog,
               cacheManager: widget.cacheManager,
-              isolateHandler: widget.isolateHandler,
               geoUploader: widget.geoUploader,
               stitchService: widget.stitchService,
               cloudStorageBloc: widget.cloudStorageBloc,
@@ -116,7 +112,6 @@ class IntroMainState extends State<IntroMain>
               projectBloc: widget.projectBloc,
               dataApiDog: widget.dataApiDog,
               cacheManager: widget.cacheManager,
-              dataHandler: widget.isolateHandler,
               organizationBloc: widget.organizationBloc,
               geoUploader: widget.geoUploader,
               refreshBloc: widget.refreshBloc,

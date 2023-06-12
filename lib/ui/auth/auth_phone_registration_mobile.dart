@@ -10,11 +10,13 @@ import 'package:freshgio/library/data/settings_model.dart';
 import 'package:freshgio/library/geofence/the_great_geofencer.dart';
 import 'package:freshgio/realm_data/data/realm_sync_api.dart';
 import 'package:freshgio/ui/auth/auth_phone_signin.dart';
+import 'package:freshgio/utilities/sync_util.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:realm/realm.dart';
 
 import '../../device_location/device_location_bloc.dart';
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
 import '../../library/api/data_api_og.dart';
 import '../../library/bloc/theme_bloc.dart';
@@ -314,7 +316,7 @@ class AuthPhoneRegistrationMobileState
     settingsModel ??= getBaseSettings();
     settingsModel!.organizationId = organizationId;
 
-    pp('$mm register Organization ................');
+    pp('$mm ........... register Organization ................');
 
     var adminUser = await realmSyncApi.registerOrganization(organization: org, user: user);
 
@@ -324,9 +326,20 @@ class AuthPhoneRegistrationMobileState
     await themeBloc.changeToTheme(settingsModel!.themeIndex!);
 
     pp('\n$mm Organization OG Administrator created: 🌍🌍🌍🌍  🍎 '
-        '${user.name!} 🌍🌍🌍🌍');
+        '${user.name!} 🌍🌍🌍🌍 will refresh data ....');
+
+    //await initializer.initializeGioServices();
+    await realmSyncApi.setOrganizationSubscriptions(
+        organizationId: user.organizationId!,
+        countryId: null, projectId: null,
+        startDate: null);
 
     await theGreatGeofencer.buildGeofences(organizationId: organizationId);
+    readShit(realmSyncApi, organizationId);
+
+    if (mounted) {
+      Navigator.of(context).pop(user);
+    }
     widget.onUserRegistered(adminUser);
     _popOut();
   }
@@ -373,7 +386,7 @@ class AuthPhoneRegistrationMobileState
         translatedTitle: 'Member has been added to Organization',
         password: null);
 
-    await widget.prefsOGx.saveUser(oldUser);
+    await widget.prefsOGx.saveUser(OldToRealm.getUser(oldUser));
 
     return user;
   }

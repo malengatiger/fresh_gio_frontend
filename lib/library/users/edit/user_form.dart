@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:freshgio/library/bloc/fcm_bloc.dart';
+import 'package:freshgio/library/bloc/old_to_realm.dart';
 import 'package:freshgio/library/data/country.dart' as old;
 import 'package:freshgio/library/data/settings_model.dart';
 import 'package:freshgio/library/errors/error_handler.dart';
 import 'package:freshgio/library/users/edit/user_edit_mobile.dart';
+import 'package:freshgio/library/utilities/transitions.dart';
 import 'package:freshgio/realm_data/data/realm_sync_api.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:uuid/uuid.dart';
@@ -23,7 +25,7 @@ import '../../data/user.dart' as ar;
 import '../../data/user.dart';
 import '../../functions.dart';
 import '../../generic_functions.dart';
-import '../avatar_editor.dart';
+import '../user_profile_picture_editor.dart';
 import '../full_user_photo.dart';
 import 'country_chooser.dart';
 
@@ -44,6 +46,7 @@ class UserForm extends StatefulWidget {
 
 class UserFormState extends State<UserForm>
     with SingleTickerProviderStateMixin {
+  final mm = '😡 😡 😡UserForm 😡 😡 😡';
   late AnimationController _controller;
   var nameController = TextEditingController();
   var emailController = TextEditingController();
@@ -64,6 +67,7 @@ class UserFormState extends State<UserForm>
   UserFormStrings? userFormStrings;
   SettingsModel? settingsModel;
   late StreamSubscription<SettingsModel> settingsSubscription;
+
 
   @override
   void initState() {
@@ -98,6 +102,7 @@ class UserFormState extends State<UserForm>
 
   Future<void> _setup() async {
     if (widget.user != null) {
+      pp('$mm USER PROPERTIES: ${widget.user!.name} ${widget.user!.cellphone} ${widget.user!.email}');
       nameController.text = widget.user!.name!;
       emailController.text = widget.user!.email!;
       cellphoneController.text = widget.user!.cellphone!;
@@ -207,11 +212,13 @@ class UserFormState extends State<UserForm>
               fcmRegistration: 'tbd',
               password: const Uuid().v4(),
               userId: 'tbd');
+
           pp('\n\n\n😡😡😡 _submit new user ......... ${user.toJson()}');
           try {
             var mUser = await dataApiDog.createUser(user);
             pp('\n🍎🍎🍎🍎 UserEditTabletPortrait: 🍎 A user has been created:  🍎 '
                 '${mUser.toJson()}\b');
+            realmSyncApi.getOrganizationUsers(organizationId: admin!.organizationId!);
             gender = null;
             type = null;
             if (mounted) {
@@ -396,6 +403,20 @@ class UserFormState extends State<UserForm>
         setState(() {});
       }
     }
+  }
+
+  void _navigateToCountrySearch() async {
+
+    navigateWithScale(CountrySearch(onCountrySelected: (c) async {
+      pp('$mm country returned from search : ${c.name}');
+      final p = await translator.translate(c.name!, settingsModel!.locale!);
+      translatedCountryName = p.replaceAll('UNAVAILABLE KEY:', '');
+
+      setState(() {
+        country = c;
+      });
+    }), context);
+
   }
 
   bool refreshCountries = false;
@@ -584,31 +605,23 @@ class UserFormState extends State<UserForm>
                       const SizedBox(
                         height: 2,
                       ),
-                      CountryChooser(
-                        refreshCountries: refreshCountries,
-                        onSelected: (mCountry) async {
-                          translatedCountryName = await translator.translate(
-                              mCountry.name!, settingsModel!.locale!);
-                          setState(() {
-                            country = mCountry;
-                            refreshCountries = !refreshCountries;
-                          });
-                        },
-                        hint: userFormStrings!.selectCountry,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          country == null
-                              ? const SizedBox()
-                              : Text(
-                                  translatedCountryName == null
-                                      ? country!.name!
-                                      : translatedCountryName!,
-                                  style: myTextStyleMedium(context),
-                                ),
-                        ],
-                      ),
+                     TextButton(onPressed: () {
+                       _navigateToCountrySearch();
+                     },
+                     child: Text(country == null?userFormStrings!.selectCountry:country!.name!,)),
+                      // Row(
+                      //   mainAxisAlignment: MainAxisAlignment.center,
+                      //   children: [
+                      //     country == null
+                      //         ? const SizedBox()
+                      //         : Text(
+                      //             translatedCountryName == null
+                      //                 ? country!.name!
+                      //                 : translatedCountryName!,
+                      //             style: myTextStyleMedium(context),
+                      //           ),
+                      //   ],
+                      // ),
                       SizedBox(
                         height: spaceToButtons,
                       ),

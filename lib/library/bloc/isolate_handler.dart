@@ -192,7 +192,7 @@ class IsolateDataHandler {
     final user = await prefsOGx.getUser();
     for (var element in bag.users!) {
       if (element.userId == user!.userId) {
-        await prefsOGx.saveUser(element);
+        await prefsOGx.saveUser(OldToRealm.getUser(user));
       }
     }
     final end = DateTime.now();
@@ -230,22 +230,20 @@ class IsolateDataHandler {
     pp('$x2 added ${mEvents.length} geofence events');
   }
 
-  Future migrateOrganizations() async {
-    pp('$x2 ..................... $nn process organizations ... ');
-    var orgs = await dataApiDog.getOrganizations();
-    await realmSyncApi.setSubscriptions(
-        organizationId: 'null',
-        countryId: null,
-        startDate: null,
-        projectId: null);
-    var mOrgs = <Organization>[];
-    for (var element in orgs) {
-      var f = _getOrganization(element);
-      mOrgs.add(f);
-    }
-    realmSyncApi.addOrganizations(mOrgs);
-    pp('$x2 added ${mOrgs.length} organizations');
-  }
+  // Future migrateOrganizations() async {
+  //   pp('$x2 ..................... $nn process organizations ... ');
+  //   var orgs = await dataApiDog.getOrganizations();
+  //   await realmSyncApi.setOrganizationSubscriptions(
+  //       organizationId: 'null',
+  //       startDate: null,);
+  //   var mOrgs = <Organization>[];
+  //   for (var element in orgs) {
+  //     var f = _getOrganization(element);
+  //     mOrgs.add(f);
+  //   }
+  //   realmSyncApi.addOrganizations(mOrgs);
+  //   pp('$x2 added ${mOrgs.length} organizations');
+  // }
 
   Future migrateActivities(
       {required String organizationId, required String name}) async {
@@ -274,7 +272,7 @@ class IsolateDataHandler {
 
     try {
       var mList = <Audio>[];
-      for (var x in audios!) {
+      for (var x in audios) {
         final a = _getAudio(x);
         mList.add(a);
       }
@@ -403,11 +401,9 @@ class IsolateDataHandler {
     pp('$x2 ..................... $nn process countries ...');
     var countries = await dataApiDog.getCountries();
     try {
-      await realmSyncApi.setSubscriptions(
-          organizationId: 'null',
-          countryId: null,
-          startDate: null,
-          projectId: null);
+      await realmSyncApi.setOrganizationSubscriptions(
+          organizationId: null, countryId: null, projectId: null,
+          startDate: null,);
 
       realmSyncApi.deleteCountries();
       var mList = <Country>[];

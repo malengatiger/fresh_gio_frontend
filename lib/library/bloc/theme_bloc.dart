@@ -69,10 +69,10 @@ class ThemeBloc {
   }
 
   Future<void> changeToLocale(String locale) async {
-    pp('\n\n$mm changing to locale: $locale, adding locale to stream');
+    // pp('\n\n$mm changing to locale: $locale, adding locale to stream');
     var settings = await prefsOGx.getSettings();
     await _dance(settings!.themeIndex!, locale, settings);
-    pp('$mm changing locale: ${settings!.locale} updated cached settings');
+    // pp('$mm changing locale: ${settings!.locale} updated cached settings');
   }
 
   Future<void> _dance(int index, String locale, SettingsModel settings) async {

@@ -39,7 +39,7 @@ class ProjectsHorizontal extends StatelessWidget {
           return ScreenTypeLayout.builder(
             mobile: (ctx) {
               return SizedBox(
-                  height: 220,
+                  height: 240,
                   child: ListView.builder(
                     itemCount: pList.length,
                     scrollDirection: Axis.horizontal,

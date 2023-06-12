@@ -435,13 +435,13 @@ class DataApiDog {
     var result = await _callWebAPIPost('${url}registerOrganization', bag);
     var u = OrganizationRegistrationBag.fromJson(result);
 
-    await prefsOGx.saveUser(u.user!);
-    await cacheManager.addRegistration(bag: u);
-    await cacheManager.addUser(user: u.user!);
-    await cacheManager.addProject(project: u.project!);
-    await cacheManager.addSettings(settings: u.settings!);
-    await cacheManager.addOrganization(organization: u.organization!);
-    await cacheManager.addProjectPosition(projectPosition: u.projectPosition!);
+    // await prefsOGx.saveUser(OldToRealm.getUser(user!)u.user!);
+    // await cacheManager.addRegistration(bag: u);
+    // await cacheManager.addUser(user: u.user!);
+    // await cacheManager.addProject(project: u.project!);
+    // await cacheManager.addSettings(settings: u.settings!);
+    // await cacheManager.addOrganization(organization: u.organization!);
+    // await cacheManager.addProjectPosition(projectPosition: u.projectPosition!);
 
     pp('$xz️ Organization registered! 😡😡 RegistrationBag arrived from backend server and cached in Hive; org:: ☕️ ${u.organization!.name!}');
 

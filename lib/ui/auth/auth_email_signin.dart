@@ -10,6 +10,7 @@ import 'package:freshgio/library/functions.dart';
 
 import '../../l10n/translation_handler.dart';
 import '../../library/api/data_api_og.dart';
+import '../../library/bloc/old_to_realm.dart';
 import '../../library/generic_functions.dart';
 
 class AuthEmailSignIn extends StatefulWidget {
@@ -94,7 +95,7 @@ class AuthEmailSignInState extends State<AuthEmailSignIn> {
       if (userCred.user != null) {
         var user = await dataApiDog.getUserById(userId: userCred.user!.uid);
         if (user != null) {
-          await prefsOGx.saveUser(user);
+          await prefsOGx.saveUser(OldToRealm.getUser(user));
           var map = await getStartEndDates();
           final startDate = map['startDate'];
           final endDate = map['endDate'];

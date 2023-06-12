@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:freshgio/library/ui/settings/settings_mobile.dart';
+import 'package:freshgio/library/ui/settings/settings_page.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 
 import '../../../realm_data/data/realm_sync_api.dart';
@@ -19,7 +19,7 @@ import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
 class SettingsMain extends StatelessWidget {
   const SettingsMain(
       {Key? key,
-      required this.dataHandler,
+      // required this.dataHandler,
       required this.dataApiDog,
       required this.prefsOGx,
       required this.organizationBloc,
@@ -30,7 +30,7 @@ class SettingsMain extends StatelessWidget {
       required this.geoUploader,
       required this.cloudStorageBloc, required this.realmSyncApi})
       : super(key: key);
-  final IsolateDataHandler dataHandler;
+  // final IsolateDataHandler dataHandler;
   final DataApiDog dataApiDog;
   final PrefsOGx prefsOGx;
   final OrganizationBloc organizationBloc;
@@ -46,7 +46,7 @@ class SettingsMain extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenTypeLayout(
-      mobile: SettingsMobile(
+      mobile: SettingsPage(
         isolateHandler: dataHandler,
         dataApiDog: dataApiDog,realmSyncApi: realmSyncApi,
 

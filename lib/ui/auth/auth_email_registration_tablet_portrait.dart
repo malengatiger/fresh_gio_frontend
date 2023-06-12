@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:freshgio/library/api/prefs_og.dart';
+import 'package:freshgio/library/bloc/old_to_realm.dart';
 import 'package:freshgio/library/bloc/theme_bloc.dart';
 import 'package:freshgio/library/data/country.dart';
 import 'package:freshgio/library/data/organization.dart';
@@ -176,7 +177,7 @@ class AuthEmailRegistrationPortraitState
         translatedTitle: messageFromGeo,
         password: password);
 
-    await prefsOGx.saveUser(user!);
+    await prefsOGx.saveUser(OldToRealm.getUser(user!));
     var sett = getBaseSettings();
     sett.organizationId = org.organizationId!;
 

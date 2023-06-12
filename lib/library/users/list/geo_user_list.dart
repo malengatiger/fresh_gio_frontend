@@ -78,7 +78,6 @@ class _GioUserListState extends State<GioUserList> {
   void initState() {
     super.initState();
     _setTexts();
-    _getData(false);
   }
 
   late StreamSubscription<User> _streamSubscription;
@@ -88,30 +87,6 @@ class _GioUserListState extends State<GioUserList> {
   mrm.LocationResponse? locationResponse;
 
   String? title;
-
-  // void _listen() {
-  //   settingsSubscriptionFCM = fcmBloc.settingsStream.listen((event) async {
-  //     if (mounted) {
-  //       await _setTexts();
-  //       _getData(false);
-  //     }
-  //   });
-  //   _streamSubscription = fcmBloc.userStream.listen((User user) {
-  //     pp('$mm new user just arrived: ${user.toJson()}');
-  //     if (mounted) {
-  //       _getData(false);
-  //     }
-  //   });
-  //   _locationResponseSubscription =
-  //       fcmBloc.locationResponseStream.listen((LocationResponse event) {
-  //     pp('$mm locationResponseStream delivered ... response: ${event.toJson()}');
-  //     locationResponse = event;
-  //     if (mounted) {
-  //       setState(() {});
-  //       _showLocationResponseDialog();
-  //     }
-  //   });
-  // }
 
   void _showLocationResponseDialog() async {
     showDialog(
@@ -195,18 +170,25 @@ class _GioUserListState extends State<GioUserList> {
     subTitle =
         await translator.translate('administratorsMembers', sett!.locale!);
     setState(() {});
+    _getData();
   }
 
-  void _getData(bool forceRefresh) async {
+  void _getData() async {
     setState(() {
       busy = true;
     });
     try {
       var p = await prefsOGx.getUser();
       user = OldToRealm.getUser(p!);
+      realmSyncApi.organizationUserStream.listen((event) {
+        pp('$mm organizationUserStream: data refreshed, users: ${users.length}');
+        setState(() {
+          users = event;
+        });
+      });
 
-      users = realmSyncApi.getUsers(user!.organizationId!);
-      pp('$mm data refreshed, users: ${users.length}');
+      users = realmSyncApi.getOrganizationUsers(organizationId: user!.organizationId!);
+
     } catch (e) {
       pp(e);
       if (mounted) {
@@ -257,7 +239,7 @@ class _GioUserListState extends State<GioUserList> {
 
   void navigateToUserBatchUpload(mrm.User? user) async {
     if (user != null) {
-      if (user!.userType == UserType.fieldMonitor) {
+      if (user.userType == UserType.fieldMonitor) {
         if (user.userId != user.userId!) {
           return;
         }
@@ -271,7 +253,7 @@ class _GioUserListState extends State<GioUserList> {
             duration: const Duration(seconds: 1),
             child: const UserBatchControl()));
 
-    _getData(false);
+    realmSyncApi.getOrganizationUsers(organizationId: user!.organizationId!);
   }
 
   void navigateToMessaging(mrm.User user) {
@@ -322,12 +304,13 @@ class _GioUserListState extends State<GioUserList> {
 
   void navigateToUserEdit(mrm.User? user) async {
     if (user != null) {
-      if (user!.userType == UserType.fieldMonitor) {
+      if (user.userType == UserType.fieldMonitor) {
         if (user.userId != user.userId!) {
           return;
         }
       }
     }
+    pp('$mm USER, check properties: ${user!.name} ${user.email} ${user.cellphone}');
     Navigator.push(
         context,
         PageTransition(
@@ -444,12 +427,12 @@ class _GioUserListState extends State<GioUserList> {
                   Icons.people,
                   color: Theme.of(context).primaryColor,
                 )),
-            PopupMenuItem(
-                value: 2,
-                child: Icon(
-                  Icons.refresh,
-                  color: Theme.of(context).primaryColor,
-                )),
+            // PopupMenuItem(
+            //     value: 2,
+            //     child: Icon(
+            //       Icons.refresh,
+            //       color: Theme.of(context).primaryColor,
+            //     )),
           ];
         }, onSelected: (index) {
           pp('$mm ...................... action index: $index');
@@ -460,9 +443,9 @@ class _GioUserListState extends State<GioUserList> {
             case 1:
               navigateToUserBatchUpload(null);
               break;
-            case 2:
-              _getData(true);
-              break;
+            // case 2:
+            //   _getData(true);
+            //   break;
           }
         }),
       ];
@@ -486,7 +469,7 @@ class _GioUserListState extends State<GioUserList> {
             )),
         IconButton(
             onPressed: () {
-              _getData(true);
+              _getData();
             },
             icon: Icon(
               Icons.refresh,

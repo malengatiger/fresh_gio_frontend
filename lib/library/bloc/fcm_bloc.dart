@@ -34,11 +34,11 @@ import '../data/user.dart';
 import '../data/video.dart';
 import '../emojis.dart';
 import '../functions.dart';
+import 'old_to_realm.dart';
 import 'organization_bloc.dart';
 import 'theme_bloc.dart';
 
 late FCMBloc fcmBloc;
-const mm = '🔵🔵🔵🔵🔵🔵 FCMBloc: 🔵🔵 ';
 
 class FCMBloc {
   late IsolateDataHandler isolateHandler;
@@ -56,6 +56,7 @@ class FCMBloc {
     isolateHandler =
         IsolateDataHandler(prefsOGx, appAuth, cacheManager, realmSyncApi);
   }
+  final mm = '🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎 FCMBloc: 🔵🔵 ';
 
   final StreamController<User> userController = StreamController.broadcast();
   final StreamController<LocationResponse> _locationResponseController =
@@ -133,25 +134,23 @@ class FCMBloc {
   }
 
   Future initialize() async {
-    pp("\n\n$mm initialize ....... FIREBASE MESSAGING ...........................");
+
+    pp("\n\n$mm FCM : initialize ....... FIREBASE MESSAGING ...........................\n");
     user = await prefsOGx.getUser();
-/*
-Name:GioMonitorKey
-Key ID:5Z3VPY2QLR
-Services:Apple Push Notifications service (APNs)
- */
+    var os = 'Android';
     try {
       if (Platform.isIOS) {
+        os = 'iOS';
         try {
-          pp('$mm ERROR ${E.redDot}${E.redDot}${E.redDot} : getting APNS token ...');
+          pp('$mm ${E.redDot}${E.redDot}${E.redDot} : getting $os APNS token ...');
           var token = await FirebaseMessaging.instance.getAPNSToken();
-          pp('$mm APNS token: $token');
+          pp('$mm $os APNS token looks to be A-OK! : $token');
         } catch (e) {
-          pp('$mm ERROR ${E.redDot}${E.redDot}${E.redDot} : failed to get APNS token: $e');
+          pp('$mm ERROR ${E.redDot}${E.redDot}${E.redDot} : failed to get $os APNS token: $e');
         }
       }
 
-      NotificationSettings settings = await firebaseMessaging.requestPermission(
+      NotificationSettings notificationSettings = await firebaseMessaging.requestPermission(
         alert: true,
         announcement: false,
         badge: true,
@@ -161,11 +160,11 @@ Services:Apple Push Notifications service (APNs)
         sound: true,
       );
 
-      pp('$mm initialize: User granted permission, status: ${settings.authorizationStatus}');
+      pp('$mm FCM : User granted permission, authorizationStatus: ${notificationSettings.authorizationStatus}');
 
       firebaseMessaging.setAutoInitEnabled(true);
       firebaseMessaging.onTokenRefresh.listen((newToken) {
-        pp("$mm onTokenRefresh: 🍎 🍎 🍎 update user: token: $newToken ... 🍎 🍎 ");
+        pp("$mm listener onTokenRefresh: 🍎🍎🍎 update user: token: $newToken ... 🍎🍎");
         user!.fcmRegistration = newToken;
         // dataApiDog.updateUser(user!);
       });
@@ -216,9 +215,11 @@ Services:Apple Push Notifications service (APNs)
         pp('$mm onMessageOpenedApp:  🍎 🍎 A new onMessageOpenedApp event was published! ${message.data}');
       });
     } catch (e) {
-      pp('${E.redDot}${E.redDot} Firebase setup error: $e');
+      pp('${E.redDot}${E.redDot}${E.redDot}${E.redDot} Firebase setup error: $e');
     }
-    pp("\n\n$mm initialize ....... FIREBASE MESSAGING - done! - will subscribeToTopics() ...........................");
+    
+    pp("\n\n$mm FCM : FIREBASE MESSAGING initialization done! - "
+        "will subscribeToTopics() ...........................");
 
     var msg = await FirebaseMessaging.instance.getInitialMessage();
     if (msg != null) {
@@ -227,6 +228,7 @@ Services:Apple Push Notifications service (APNs)
     FirebaseMessaging.onMessageOpenedApp.listen((event) {
       processFCMMessage(event);
     });
+    
     subscribeToTopics();
   }
 
@@ -237,49 +239,49 @@ Services:Apple Push Notifications service (APNs)
       return;
     }
 
-    pp("\n\n$mm ..... attempt to subscribe to Gio FCM Topics ...........................");
+    pp("\n\n$mm subscribeToTopics: attempt to subscribe to Gio FCM Topics ...........................");
     final start = DateTime.now();
     try {
       await firebaseMessaging
           .subscribeToTopic('activities_${user.organizationId}');
-      pp('$mm ..... subscribed to activities');
+      pp('$mm ..... FCM: subscribed to activities');
       await firebaseMessaging
           .subscribeToTopic('projects_${user.organizationId}');
-      pp('$mm ..... subscribed to projects');
+      pp('$mm ..... FCM: subscribed to projects');
       await firebaseMessaging
           .subscribeToTopic('projectPositions_${user.organizationId}');
-      pp('$mm ..... subscribed to projectPositions_');
+      pp('$mm ..... FCM: subscribed to projectPositions_');
       await firebaseMessaging
           .subscribeToTopic('projectPolygons_${user.organizationId}');
-      pp('$mm ..... subscribed to projectPolygons_');
+      pp('$mm ..... FCM: subscribed to projectPolygons_');
       await firebaseMessaging.subscribeToTopic('photos_${user.organizationId}');
-      pp('$mm ..... subscribed to photos_');
+      pp('$mm ..... FCM: subscribed to photos_');
       await firebaseMessaging.subscribeToTopic('videos_${user.organizationId}');
-      pp('$mm ..... subscribed to videos_');
+      pp('$mm ..... FCM: subscribed to videos_');
       await firebaseMessaging
           .subscribeToTopic('conditions_${user.organizationId}');
-      pp('$mm ..... subscribed to conditions_');
+      pp('$mm ..... FCM: subscribed to conditions_');
       await firebaseMessaging
           .subscribeToTopic('messages_${user.organizationId}');
-      pp('$mm ..... subscribed to messages_');
+      pp('$mm ..... FCM: subscribed to messages_');
       await firebaseMessaging.subscribeToTopic('users_${user.organizationId}');
-      pp('$mm ..... subscribed to users_');
+      pp('$mm ..... FCM: subscribed to users_');
       await firebaseMessaging.subscribeToTopic('audios_${user.organizationId}');
-      pp('$mm ..... subscribed to audios_');
+      pp('$mm ..... FCM: subscribed to audios_');
       await firebaseMessaging.subscribeToTopic('kill_${user.organizationId}');
-      pp('$mm ..... subscribed to kill_');
+      pp('$mm ..... FCM: subscribed to kill_');
       await firebaseMessaging
           .subscribeToTopic('locationRequests_${user.organizationId}');
-      pp('$mm ..... subscribed to locationRequests_');
+      pp('$mm ..... FCM: subscribed to locationRequests_');
       await firebaseMessaging
           .subscribeToTopic('locationResponses_${user.organizationId}');
-      pp('$mm ..... subscribed to locationResponses_');
+      pp('$mm ..... FCM: subscribed to locationResponses_');
       await firebaseMessaging
           .subscribeToTopic('settings_${user.organizationId}');
-      pp('$mm ..... subscribed to settings_');
+      pp('$mm ..... FCM: subscribed to settings_');
       await firebaseMessaging
           .subscribeToTopic('geofenceEvents_${user.organizationId}');
-      pp('$mm ..... subscribed to geofenceEvents_');
+      pp('$mm ..... FCM: subscribed to geofenceEvents_');
       final end = DateTime.now();
       // prefsOGz.setFCMSubscriptionFlag();
       pp("\n\n$mm subscribeToTopics: 🍎 subscription process has been started for all 14 organization topics 🍎"
@@ -335,7 +337,6 @@ Services:Apple Push Notifications service (APNs)
       if (user!.userId == req.userId) {
         pp("$mm processFCMMessage  🔵 🔵 🔵 ........................... sending location response");
         var loc = await locationBloc.getLocation();
-        if (loc != null) {
           await locationRequestHandler.sendLocationResponse(
               user: user,
               latitude: loc.latitude!,
@@ -344,9 +345,7 @@ Services:Apple Push Notifications service (APNs)
               requesterName: req.requesterName!);
 
           pp('$mm act responded to location request');
-        } else {
-          pp('$mm Location not available');
-        }
+
       }
     }
     if (data['locationResponse'] != null) {
@@ -374,7 +373,7 @@ Services:Apple Push Notifications service (APNs)
       var m = jsonDecode(data['user']);
       var mUser = User.fromJson(m);
       if (mUser.userId == user!.userId) {
-        await prefsOGx.saveUser(mUser);
+        await prefsOGx.saveUser(OldToRealm.getUser(mUser));
       }
       await cacheManager.addUser(user: user);
       userController.sink.add(user);

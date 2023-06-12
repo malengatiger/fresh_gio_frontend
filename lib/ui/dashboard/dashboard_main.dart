@@ -31,10 +31,13 @@ class DashboardMain extends StatefulWidget {
     required this.projectBloc,
     required this.prefsOGx,
     required this.cacheManager,
-    required this.dataHandler,
+    // required this.dataHandler,
     required this.geoUploader,
     required this.cloudStorageBloc,
-    required this.firebaseAuth, required this.stitchService, required this.refreshBloc, required this.realmSyncApi,
+    required this.firebaseAuth,
+    required this.stitchService,
+    required this.refreshBloc,
+    required this.realmSyncApi,
   }) : super(key: key);
   final DataApiDog dataApiDog;
   final FCMBloc fcmBloc;
@@ -42,15 +45,13 @@ class DashboardMain extends StatefulWidget {
   final ProjectBloc projectBloc;
   final PrefsOGx prefsOGx;
   final CacheManager cacheManager;
-  final IsolateDataHandler dataHandler;
+  // final IsolateDataHandler dataHandler;
   final GeoUploader geoUploader;
   final CloudStorageBloc cloudStorageBloc;
   final auth.FirebaseAuth firebaseAuth;
   final StitchService stitchService;
   final RefreshBloc refreshBloc;
   final RealmSyncApi realmSyncApi;
-
-
 
   @override
   DashboardMainState createState() => DashboardMainState();
@@ -103,11 +104,6 @@ class DashboardMainState extends State<DashboardMain>
     setState(() {});
   }
 
-  void _refreshWhileInBackground() async {
-    dataHandler.getOrganizationData();
-
-    pp('$mm Background data refresh completed');
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -161,7 +157,7 @@ class DashboardMainState extends State<DashboardMain>
               onWillStart: () async {
                 pp('\n\n$mm WillStartForegroundTask: onWillStart '
                     '🌎 what do we do now, Boss? 🌎🌎🌎🌎🌎🌎try data refresh? ... ');
-               // _refreshWhileInBackground();
+                // _refreshWhileInBackground();
                 return geofenceService.isRunningService;
               },
               androidNotificationOptions: AndroidNotificationOptions(
@@ -193,7 +189,6 @@ class DashboardMainState extends State<DashboardMain>
               child: ScreenTypeLayout(
                 mobile: DashboardKhaya(
                   dataApiDog: widget.dataApiDog,
-                  dataHandler: widget.dataHandler,
                   fcmBloc: widget.fcmBloc,
                   organizationBloc: widget.organizationBloc,
                   projectBloc: widget.projectBloc,
@@ -210,7 +205,6 @@ class DashboardMainState extends State<DashboardMain>
                   portrait: (context) {
                     return DashboardKhaya(
                       dataApiDog: widget.dataApiDog,
-                      dataHandler: widget.dataHandler,
                       fcmBloc: widget.fcmBloc,
                       projectBloc: widget.projectBloc,
                       prefsOGx: widget.prefsOGx,
@@ -227,7 +221,6 @@ class DashboardMainState extends State<DashboardMain>
                   landscape: (context) {
                     return DashboardKhaya(
                       dataApiDog: widget.dataApiDog,
-                      dataHandler: widget.dataHandler,
                       fcmBloc: widget.fcmBloc,
                       realmSyncApi: realmSyncApi,
                       organizationBloc: widget.organizationBloc,

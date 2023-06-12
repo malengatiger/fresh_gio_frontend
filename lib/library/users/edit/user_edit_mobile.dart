@@ -49,13 +49,17 @@ class UserEditMobileState extends State<UserEditMobile>
 
   UserFormStrings? userFormStrings;
   late StreamSubscription<SettingsModel> settingsSubscription;
-
+  final mm = '🐸🐸🐸🐸🐸🐸UserEditMobile 🐸🐸';
   @override
   void initState() {
     super.initState();
     _listen();
     _setTexts();
     _getAdministrator();
+    if (widget.user != null) {
+      pp('$mm USER PROPERTIES: ${widget.user!.name} ${widget.user!.cellphone} ${widget.user!.email}');
+
+    }
   }
 
   void _getAdministrator() async {
