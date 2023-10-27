@@ -5,6 +5,7 @@ import 'package:freshgio/library/api/prefs_og.dart';
 import 'package:freshgio/library/data/location_request.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
 import '../cache_manager.dart';
 import '../data/location_response.dart';
@@ -28,7 +29,7 @@ class LocationRequestHandler {
       required String userId,
       required String userName}) async {
     pp('$mm sendLocationRequest ... getting user');
-    var user = await prefsOGx.getUser();
+    var user = await getIt<PrefsOGx>().getUser();
     if (user == null) {
       pp('$mm ..... user is null, cannot send location request ....');
       return;

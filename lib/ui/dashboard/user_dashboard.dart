@@ -15,6 +15,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:universal_platform/universal_platform.dart';
 
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
 import '../../library/api/prefs_og.dart';
 import '../../library/bloc/cloud_storage_bloc.dart';
@@ -115,7 +116,7 @@ class UserDashboardState extends State<UserDashboard>
   }
 
   Future _setTexts() async {
-    var sett = await prefsOGx.getSettings();
+    var sett = await getIt<PrefsOGx>().getSettings();
     memberDashboard = await translator.translate('memberDashboard', sett!.locale!);
     dashboardStrings = await DashboardStrings.getTranslated();
     if (mounted) {
@@ -132,7 +133,7 @@ class UserDashboardState extends State<UserDashboard>
       });
     }
     try {
-      user = await prefsOGx.getUser();
+      user = await getIt<PrefsOGx>().getUser();
       var map = await getStartEndDates();
       final startDate = map['startDate'];
       final endDate = map['endDate'];
@@ -292,7 +293,7 @@ class UserDashboardState extends State<UserDashboard>
   void _displayPhoto(mrm.Photo photo) async {
     pp('$mm _displayPhoto ...');
     this.photo = photo;
-    final settings = await prefsOGx.getSettings();
+    final settings = await getIt<PrefsOGx>().getSettings();
     translatedDate = getFmtDate(photo.created!, settings.locale!);
     setState(() {
       _showPhoto = true;

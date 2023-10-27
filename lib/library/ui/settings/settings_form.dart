@@ -10,6 +10,7 @@ import 'package:freshgio/library/data/settings_model.dart';
 import 'package:freshgio/realm_data/data/realm_sync_api.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
 import '../../../utilities/sync_util.dart';
 import '../../api/prefs_og.dart';
@@ -106,11 +107,11 @@ class SettingsFormState extends State<SettingsForm> {
 
   Future _getUser() async {
     pp('$mm 🍎🍎 ............. getting user from prefs ...');
-    user = await prefsOGx.getUser();
+    user = await getIt<PrefsOGx>().getUser();
   }
 
   Future _setTexts() async {
-    settingsModel = await prefsOGx.getSettings();
+    settingsModel = await getIt<PrefsOGx>().getSettings();
     currentLocale = settingsModel.locale!;
 
     final m1 =
@@ -187,7 +188,7 @@ class SettingsFormState extends State<SettingsForm> {
       if (settingsModel.activityStreamHours == null ||
           settingsModel.activityStreamHours == 0) {
         settingsModel.activityStreamHours = 24;
-        await prefsOGx.saveSettings(settingsModel);
+        await getIt<PrefsOGx>().saveSettings(settingsModel);
       }
 
     settingsModel ??= getBaseSettings();
@@ -295,7 +296,7 @@ class SettingsFormState extends State<SettingsForm> {
 
       pp('🌸 🌸 🌸 🌸 🌸 ... about to save settings: ${settingsModel.toJson()}');
 
-      await prefsOGx.saveSettings(settingsModel);
+      await getIt<PrefsOGx>().saveSettings(settingsModel);
       Locale newLocale = Locale(settingsModel.locale!);
       final m = LocaleAndTheme(
           themeIndex: settingsModel.themeIndex!, locale: newLocale);
@@ -752,7 +753,7 @@ class SettingsFormState extends State<SettingsForm> {
                       });
                       if (settingsModel != null) {
                         settingsModel.themeIndex = currentThemeIndex;
-                        prefsOGx.saveSettings(settingsModel);
+                        getIt<PrefsOGx>().saveSettings(settingsModel);
                       }
                     },
                     crossAxisCount: 6,
@@ -771,7 +772,7 @@ class SettingsFormState extends State<SettingsForm> {
   void _handleLocaleChange(Locale locale, String translatedLanguage) async {
     pp('$mm onLocaleChange ... going to ${locale.languageCode}');
     settingsModel.locale = locale.languageCode;
-    await prefsOGx.saveSettings(settingsModel);
+    await getIt<PrefsOGx>().saveSettings(settingsModel);
     await translator.translate('settings', settingsModel.locale!);
     await _setTexts();
     themeBloc.changeToLocale(locale.languageCode);
@@ -829,7 +830,7 @@ class LocaleChooserState extends State<LocaleChooser> {
   }
 
   Future setTexts() async {
-    settingsModel = await prefsOGx.getSettings();
+    settingsModel = await getIt<PrefsOGx>().getSettings();
     if (settingsModel?.locale != null) {
       english = await translator.translate('en', settingsModel!.locale!);
       afrikaans = await translator.translate('af', settingsModel!.locale!);
@@ -929,10 +930,10 @@ class LocaleChooserState extends State<LocaleChooser> {
   void onChanged(Locale? locale) async {
     pp('LocaleChooser 🌀🌀🌀🌀:onChanged: selected locale: '
         '${locale.toString()}');
-    settingsModel = await prefsOGx.getSettings();
+    settingsModel = await getIt<PrefsOGx>().getSettings();
     settingsModel!.locale = locale!.languageCode;
 
-    await prefsOGx.saveSettings(settingsModel!);
+    await getIt<PrefsOGx>().saveSettings(settingsModel!);
     await setTexts();
 
     var language = 'English';

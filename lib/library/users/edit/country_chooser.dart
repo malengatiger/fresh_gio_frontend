@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:freshgio/library/api/prefs_og.dart';
 import 'package:freshgio/realm_data/data/realm_sync_api.dart';
 import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:badges/badges.dart' as bd;
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
 
-import '../../api/data_api_og.dart';
-import '../../cache_manager.dart';
-import '../../data/country.dart' as old;
+import '../../api/prefs_og.dart';
 import '../../data/settings_model.dart';
 import '../../functions.dart';
 
@@ -44,7 +42,7 @@ class CountryChooserState extends State<CountryChooser> {
     setState(() {
       loading = true;
     });
-    settings = await prefsOGx.getSettings();
+    settings = await getIt<PrefsOGx>().getSettings();
     if (countries.isEmpty) {
       pp('$mm getting countries from realm ................');
       countries = realmSyncApi.getCountries();

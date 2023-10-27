@@ -5,6 +5,7 @@ import 'package:freshgio/ui/dashboard/project_dashboard_mobile.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:universal_platform/universal_platform.dart';
 
+import '../../initializer.dart';
 import '../../library/api/prefs_og.dart';
 import '../../library/bloc/connection_check.dart';
 import '../../library/bloc/fcm_bloc.dart';
@@ -93,7 +94,7 @@ class _ProjectDashboardGridState extends State<ProjectDashboardGrid>
   }
 
   void _getData(bool forceRefresh) async {
-    user = await prefsOGx.getUser();
+    user = await getIt<PrefsOGx>().getUser();
     pp('$mm ..... getting project data ...');
     if (mounted) {
       setState(() {

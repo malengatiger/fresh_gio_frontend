@@ -4,9 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:freshgio/library/api/prefs_og.dart';
 import 'package:freshgio/library/bloc/cloud_storage_bloc.dart';
-import 'package:freshgio/library/data/project.dart';
 import 'package:freshgio/library/data/settings_model.dart';
 import 'package:freshgio/library/functions.dart';
 import 'package:freshgio/ui/activity/user_profile_card.dart';
@@ -14,20 +12,19 @@ import 'package:freshgio/ui/audio/gio_audio_player.dart';
 import 'package:freshgio/ui/audio/recording_controls.dart';
 import 'package:freshgio/ui/visualizer/audio_visualizer.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:record/record.dart';
+import 'package:record/record.dart' as rec;
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../device_location/device_location_bloc.dart';
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
+import '../../library/api/prefs_og.dart';
 import '../../library/bloc/audio_for_upload.dart';
-import '../../library/bloc/cloud_storage_bloc.dart';
 import '../../library/bloc/fcm_bloc.dart';
-import '../../library/bloc/geo_uploader.dart';
 import '../../library/cache_manager.dart';
 import '../../library/data/audio.dart';
 import '../../library/data/position.dart';
-import '../../library/data/project.dart' as old;
 
 import '../../library/data/user.dart';
 import '../../library/data/video.dart';
@@ -52,20 +49,20 @@ class AudioRecorder extends StatefulWidget {
 class AudioRecorderState extends State<AudioRecorder> {
   int _recordDuration = 0;
   Timer? _timer;
-  final _audioRecorder = Record();
-  StreamSubscription<RecordState>? _recordSub;
-  RecordState _recordState = RecordState.stop;
-  StreamSubscription<Amplitude>? _amplitudeSub;
+  final _audioRecorder = rec.AudioRecorder();
+  StreamSubscription<rec.RecordState>? _recordSub;
+  rec.RecordState _recordState = rec.RecordState.stop;
+  StreamSubscription<rec.Amplitude>? _amplitudeSub;
   late StreamSubscription<SettingsModel> settingsSubscriptionFCM;
 
-  Amplitude? _amplitude;
+  rec.Amplitude? _amplitude;
   static const mm = '🍐🍐🍐 AudioRecorder 🍐🍐🍐: ';
   User? user;
   SettingsModel? settingsModel;
   @override
   void initState() {
     _recordSub =
-        _audioRecorder.onStateChanged().listen((RecordState recordState) {
+        _audioRecorder.onStateChanged().listen((rec.RecordState recordState) {
       pp('$mm onStateChanged; record state: $recordState');
       setState(() => _recordState = recordState);
     });
@@ -97,8 +94,8 @@ class AudioRecorderState extends State<AudioRecorder> {
   bool showWaveForm = false;
 
   Future _setTexts() async {
-    user = await prefsOGx.getUser();
-    settingsModel = await prefsOGx.getSettings();
+    user = await getIt<PrefsOGx>().getUser();
+    settingsModel = await getIt<PrefsOGx>().getSettings();
     var m = settingsModel?.maxAudioLengthInMinutes;
     limitInSeconds = m! * 60;
     title =
@@ -140,10 +137,10 @@ class AudioRecorderState extends State<AudioRecorder> {
       if (await _audioRecorder.hasPermission()) {
         // We don't do anything with this but printing
         final isSupported = await _audioRecorder.isEncoderSupported(
-          AudioEncoder.aacLc,
+          rec.AudioEncoder.aacLc,
         );
         if (kDebugMode) {
-          pp('$mm AudioEncoder.aacLc: ${AudioEncoder.aacLc.name} supported: $isSupported');
+          pp('$mm AudioEncoder.aacLc: ${rec.AudioEncoder.aacLc.name} supported: $isSupported');
         }
 
         var directory = await getApplicationDocumentsDirectory();
@@ -153,7 +150,7 @@ class AudioRecorderState extends State<AudioRecorder> {
             '${settingsModel!.organizationId!}_${widget.project.projectId}_${DateTime.now().millisecondsSinceEpoch}.m4a';
         File audioFile = File('${directory.path}/audio_$suffix');
 
-        await _audioRecorder.start(path: audioFile.path);
+        await _audioRecorder.start(const rec.RecordConfig(), path: audioFile.path);
         pp('$mm _audioRecorder has started ...');
         _startTimer();
       }
@@ -390,7 +387,7 @@ class AudioRecorderCard extends StatelessWidget {
       required this.close})
       : super(key: key);
 
-  final RecordState recordState;
+  final rec.RecordState recordState;
   final Function start, stop, pause, resume, uploadFile, close;
   final String projectName,
       durationText,
@@ -405,14 +402,14 @@ class AudioRecorderCard extends StatelessWidget {
   final User user;
 
   Widget _buildPauseResumeControl(BuildContext context) {
-    if (recordState == RecordState.stop) {
+    if (recordState == rec.RecordState.stop) {
       return const SizedBox.shrink();
     }
 
     late Icon icon;
     late Color color;
 
-    if (recordState == RecordState.record) {
+    if (recordState == rec.RecordState.record) {
       icon = Icon(Icons.pause,
           color: Theme.of(context).primaryColor,
           size: iconSize == null ? 60 : iconSize!);
@@ -433,7 +430,7 @@ class AudioRecorderCard extends StatelessWidget {
               height: iconSize == null ? 60 : iconSize!,
               child: icon),
           onTap: () {
-            (recordState == RecordState.pause) ? resume() : pause();
+            (recordState == rec.RecordState.pause) ? resume() : pause();
           },
         ),
       ),
@@ -446,7 +443,7 @@ class AudioRecorderCard extends StatelessWidget {
     late Icon icon;
     late Color color;
     final theme = Theme.of(context);
-    if (recordState != RecordState.stop) {
+    if (recordState != rec.RecordState.stop) {
       icon = Icon(Icons.stop, color: theme.primaryColor, size: 30);
       color = theme.primaryColorLight.withOpacity(0.1);
     } else {
@@ -549,7 +546,7 @@ class AudioRecorderCard extends StatelessWidget {
                                             iconSize == null ? 56 : iconSize!,
                                         child: icon),
                                     onTap: () {
-                                      (recordState != RecordState.stop)
+                                      (recordState != rec.RecordState.stop)
                                           ? stop()
                                           : start();
                                     },

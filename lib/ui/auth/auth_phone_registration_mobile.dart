@@ -86,7 +86,7 @@ class AuthPhoneRegistrationMobileState
   }
 
   Future _setTexts() async {
-    settingsModel = await prefsOGx.getSettings();
+    settingsModel = await getIt<PrefsOGx>().getSettings();
     signInStrings = await SignInStrings.getTranslated(settingsModel!);
 
     if (country != null) {

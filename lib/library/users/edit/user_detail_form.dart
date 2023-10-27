@@ -1,30 +1,20 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:freshgio/library/bloc/fcm_bloc.dart';
-import 'package:freshgio/library/data/country.dart';
 import 'package:freshgio/library/data/settings_model.dart';
-import 'package:freshgio/library/errors/error_handler.dart';
 import 'package:freshgio/library/users/edit/user_edit_mobile.dart';
 import 'package:freshgio/realm_data/data/realm_sync_api.dart';
 import 'package:page_transition/page_transition.dart';
-import 'package:uuid/uuid.dart';
 
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
 
-import '../../api/data_api_og.dart';
 import '../../api/prefs_og.dart';
-import '../../bloc/geo_exception.dart';
-import '../../bloc/organization_bloc.dart';
-import '../../cache_manager.dart';
 import '../../data/user.dart' as ar;
 import '../../data/user.dart';
 import '../../functions.dart';
-import '../../generic_functions.dart';
-import '../user_profile_picture_editor.dart';
 import '../full_user_photo.dart';
-import 'country_chooser.dart';
 import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
 
 class UserDetailForm extends StatefulWidget {
@@ -75,8 +65,8 @@ class UserDetailFormState extends State<UserDetailForm>
   }
 
   void _setTexts() async {
-    admin = await prefsOGx.getUser();
-    settingsModel = await prefsOGx.getSettings();
+    admin = await getIt<PrefsOGx>().getUser();
+    settingsModel = await getIt<PrefsOGx>().getSettings();
     userFormStrings = await UserFormStrings.getTranslated();
     pleaseSelectCountry = await translator.translate('pleaseSelectCountry',
         settingsModel!.locale!);
@@ -143,7 +133,7 @@ class UserDetailFormState extends State<UserDetailForm>
     if (widget.user != null) {
       if (widget.user!.countryId != null) {
         var countries = realmSyncApi.getCountries();
-        var sett = await prefsOGx.getSettings();
+        var sett = await getIt<PrefsOGx>().getSettings();
         for (var value in countries) {
           if (widget.user!.countryId == value.countryId) {
             translatedCountryName = await translator.translate(value.name!, sett!.locale!);

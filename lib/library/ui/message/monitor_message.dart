@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshgio/library/api/data_api_og.dart';
 import 'package:freshgio/library/cache_manager.dart';
 import 'package:uuid/uuid.dart';
+import '../../../initializer.dart';
 import '../../api/prefs_og.dart';
 import '../../data/project.dart';
 import '../../data/user.dart';
@@ -63,7 +64,7 @@ class MonitorMessageState extends State<MonitorMessage> {
     setState(() {
       isBusy = true;
     });
-    var sender = await prefsOGx.getUser();
+    var sender = await getIt<PrefsOGx>().getUser();
     if (sender != null && sender.userId != user!.userId) {
       var msg = OrgMessage(
           name: user!.name,

@@ -3,6 +3,7 @@ import 'package:freshgio/library/bloc/project_bloc.dart';
 
 import 'package:page_transition/page_transition.dart';
 
+import '../../initializer.dart';
 import '../../library/api/data_api_og.dart';
 import '../../library/api/prefs_og.dart';
 import '../../library/data/community.dart';
@@ -37,7 +38,7 @@ class ProjectDetailState extends State<ProjectDetail> {
 
   _getData() async {
     _buildNav();
-    user = await prefsOGx.getUser();
+    user = await getIt<PrefsOGx>().getUser();
   }
 
   @override

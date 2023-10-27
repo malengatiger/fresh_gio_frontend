@@ -7,7 +7,7 @@ import 'package:freshgio/library/cache_manager.dart';
 import 'package:freshgio/library/data/audio.dart';
 import 'package:freshgio/ui/audio/player_controls.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:siri_wave/siri_wave.dart';
+import 'package:siri_wave/siri_wave.dart' as siri;
 
 import '../../l10n/translation_handler.dart';
 import '../../library/api/prefs_og.dart';
@@ -367,7 +367,7 @@ class GioAudioPlayerState extends State<GioAudioPlayer> {
 class SiriCard extends StatelessWidget {
   SiriCard({Key? key}) : super(key: key);
 
-  final siriWaveController = SiriWaveController();
+  final siriWaveController = siri.IOS9SiriWaveformController();
 
   @override
   Widget build(BuildContext context) {
@@ -375,14 +375,10 @@ class SiriCard extends StatelessWidget {
       color: Theme.of(context).dialogBackgroundColor,
       shape: getRoundedBorder(radius: 16),
       elevation: 8,
-      child: SizedBox(
+      child: const SizedBox(
         height: 64,
-        child: SiriWave(
-            options: SiriWaveOptions(
-                height: 24, backgroundColor: Theme.of(context).primaryColor),
-            controller: siriWaveController),
-      ),
-    );
+        child: SizedBox(),
+    ));
   }
 }
 

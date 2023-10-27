@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:freshgio/library/emojis.dart';
 import 'package:freshgio/library/generic_functions.dart';
 
+import '../../initializer.dart';
 import '../api/data_api_og.dart';
 import '../api/prefs_og.dart';
 import '../data/user.dart';
@@ -43,7 +44,7 @@ class KillUserPageState extends State<KillUserPage>
 
   void _sendKillRequest() async {
     pp('$mm sending kill request for ${widget.user.name!}');
-    var killer = await prefsOGx.getUser();
+    var killer = await getIt<PrefsOGx>().getUser();
     setState(() {
       busy = true;
     });

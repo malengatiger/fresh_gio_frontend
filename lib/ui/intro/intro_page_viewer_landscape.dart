@@ -8,6 +8,7 @@ import 'package:freshgio/ui/auth/auth_signin_main.dart';
 import 'package:freshgio/ui/dashboard/dashboard_main.dart';
 import 'package:page_transition/page_transition.dart';
 
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
 import '../../library/api/data_api_og.dart';
 import '../../library/api/prefs_og.dart';
@@ -136,7 +137,7 @@ class IntroPageViewerLandscapeState extends State<IntroPageViewerLandscape>
           '${E.redDot}${E.redDot}${E.redDot} ... will clean house!!');
       authed = false;
       //todo - ensure that the right thing gets done!
-      prefsOGx.deleteUser();
+      getIt<PrefsOGx>().deleteUser();
       firebaseAuth.signOut();
       cacheManager.initialize();
       pp('$mm _getAuthenticationStatus .......  '
@@ -148,7 +149,7 @@ class IntroPageViewerLandscapeState extends State<IntroPageViewerLandscape>
   }
 
   Future<void> _navigateToDashboard() async {
-    user = await prefsOGx.getUser();
+    user = await getIt<PrefsOGx>().getUser();
     if (user != null) {
       if (mounted) {
         Navigator.push(
@@ -186,7 +187,7 @@ class IntroPageViewerLandscapeState extends State<IntroPageViewerLandscape>
             alignment: Alignment.topLeft,
             duration: const Duration(seconds: 1),
             child: AuthSignIn(
-              prefsOGx: prefsOGx,
+              prefsOGx: getIt<PrefsOGx>(),
               dataApiDog: dataApiDog,
               cacheManager: cacheManager,
             )));
@@ -195,7 +196,7 @@ class IntroPageViewerLandscapeState extends State<IntroPageViewerLandscape>
       pp('\n\n\n$mm _navigateToSignIn ....... back from AuthSignInMain with a user '
           '... 🔵🔵🔵🔵 ${result.toJson()} ');
     }
-    user = await prefsOGx.getUser();
+    user = await getIt<PrefsOGx>().getUser();
     pp('\n\n$mm 😡😡 Returned from sign in, checking if login succeeded bu getting user from cache 😡');
 
     if (user != null) {
@@ -225,7 +226,7 @@ class IntroPageViewerLandscapeState extends State<IntroPageViewerLandscape>
             alignment: Alignment.topLeft,
             duration: const Duration(seconds: 1),
             child: AuthRegistrationMain(
-              prefsOGx: prefsOGx,
+              prefsOGx: getIt<PrefsOGx>(),
               dataApiDog: dataApiDog,
               cacheManager: cacheManager,
               firebaseAuth: firebaseAuth,

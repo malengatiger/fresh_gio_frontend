@@ -13,6 +13,7 @@ import 'package:freshgio/library/errors/error_handler.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
 import '../api/data_api_og.dart';
 import '../auth/app_auth.dart';
@@ -59,7 +60,7 @@ class DataRefresher {
       required String? userId}) async {
     pp('\n\n\n$xx manageRefresh: will run inside Isolates: starting ... 🔵🔵🔵😡😡\n\n');
     var start = DateTime.now();
-    final sett = await prefsOGx.getSettings();
+    final sett = await getIt<PrefsOGx>().getSettings();
 
     if (numberOfDays == null) {
       this.numberOfDays = sett.numberOfDays!;
@@ -192,7 +193,7 @@ class DataRefresher {
           .toIso8601String();
       endDate = DateTime.now().toUtc().toIso8601String();
       pp('$xx 🍎🍎🍎 check dates:startDate: $startDate endDate: $endDate 🍎🍎🍎');
-      user = await prefsOGx.getUser();
+      user = await getIt<PrefsOGx>().getUser();
       if (user == null) {
         throw Exception('User is null');
       }
@@ -417,7 +418,7 @@ class DataRefresher {
 
     for (var element in bag.users!) {
       if (element.userId == user!.userId) {
-        //await prefsOGx.saveUser(element);
+        //await getIt<PrefsOGx>()saveUser(element);
         fcmBloc.userController.sink.add(element);
       }
     }
@@ -808,7 +809,7 @@ Future<DataBag?> _getDataBag(
   }
   if (dataBag == null) {
     pp('$xz _getDataBag: dataBag is null');
-    final sett = await prefsOGx.getSettings();
+    final sett = await getIt<PrefsOGx>().getSettings();
     final serverProblem =
         await translator.translate('serverProblem', sett.locale!);
     throw serverProblem;

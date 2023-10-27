@@ -5,6 +5,7 @@ import 'package:freshgio/library/bloc/isolate_handler.dart';
 import 'package:freshgio/library/ui/settings/settings_form.dart';
 import 'package:freshgio/library/ui/settings/settings_form_monitor.dart';
 
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
 import '../../../realm_data/data/realm_sync_api.dart';
 import '../../api/data_api_og.dart';
@@ -77,9 +78,9 @@ class SettingsPageState extends State<SettingsPage>
   }
 
   Future _setTexts() async {
-    settingsModel = await prefsOGx.getSettings();
+    settingsModel = await getIt<PrefsOGx>().getSettings();
     title = await translator.translate('settings', settingsModel!.locale!);
-    user = await prefsOGx.getUser();
+    user = await getIt<PrefsOGx>().getUser();
     if (user!.userType! == UserType.fieldMonitor) {
       showMonitorForm = true;
     }
@@ -97,7 +98,7 @@ class SettingsPageState extends State<SettingsPage>
 
   void _getOrganizationSettings() async {
     pp('🍎🍎 ............. getting user from prefs ...');
-    user = await prefsOGx.getUser();
+    user = await getIt<PrefsOGx>().getUser();
     setState(() {
       busy = true;
     });

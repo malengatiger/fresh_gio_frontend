@@ -23,6 +23,7 @@ import 'package:freshgio/library/functions.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:realm/realm.dart' as realm;
 
+import '../../initializer.dart';
 import '../../realm_data/data/realm_sync_api.dart';
 import '../../realm_data/data/schemas.dart';
 import '../api/data_api_og.dart';
@@ -48,12 +49,12 @@ class IsolateDataHandler {
 
   Future<DataBag?> getOrganizationData() async {
     pp('\n\n$xx getOrganizationData;  🦊collect parameters from SettingsModel, refresh date ...');
-    final sett = await prefsOGx.getSettings();
+    final sett = await getIt<PrefsOGx>().getSettings();
     pp('$xx getOrganizationData, settings.activityStreamHours: ${sett.activityStreamHours}');
     final token = await appAuth.getAuthToken();
     final dir = await getApplicationDocumentsDirectory();
 
-    var lastRefresh = await prefsOGx.getLastRefresh();
+    var lastRefresh = await getIt<PrefsOGx>().getLastRefresh();
     var now = DateTime.now().toUtc().toIso8601String();
     pp('$xx getOrganizationData, lastRefresh startDate: ${lastRefresh.stringDate} endDate: $now'
         ' id:  ${sett.organizationId}\n');
@@ -74,7 +75,7 @@ class IsolateDataHandler {
 
     final bag = await _spawnIsolate(gioParams);
     if (bag != null) {
-      await prefsOGx.saveLastRefresh();
+      await getIt<PrefsOGx>().saveLastRefresh();
       await _cacheTheData(bag);
       _sendOrganizationDataToStreams(bag);
     }
@@ -86,7 +87,7 @@ class IsolateDataHandler {
     pp('$xx getProjectData;  🦊...');
     myReceivePort = ReceivePort();
 
-    final sett = await prefsOGx.getSettings();
+    final sett = await getIt<PrefsOGx>().getSettings();
     final token = await appAuth.getAuthToken();
     final map = await getStartEndDates(numberOfDays: sett.numberOfDays!);
     final dir = await getApplicationDocumentsDirectory();
@@ -116,7 +117,7 @@ class IsolateDataHandler {
     myReceivePort = ReceivePort();
     userBloc = UserBloc(dataApiDog, cacheManager, this);
 
-    final sett = await prefsOGx.getSettings();
+    final sett = await getIt<PrefsOGx>().getSettings();
     final token = await appAuth.getAuthToken();
     final map = await getStartEndDates(numberOfDays: sett.numberOfDays!);
     final dir = await getApplicationDocumentsDirectory();
@@ -171,7 +172,7 @@ class IsolateDataHandler {
     }
 
     final start = DateTime.now();
-    await cacheManager.addProjects(projects: bag!.projects!);
+    await cacheManager.addProjects(projects: bag.projects!);
     await cacheManager.addProjectPolygons(polygons: bag.projectPolygons!);
     await cacheManager.addProjectPositions(positions: bag.projectPositions!);
     await cacheManager.addUsers(users: bag.users!);
@@ -189,10 +190,10 @@ class IsolateDataHandler {
     await cacheManager.addFieldMonitorSchedules(
         schedules: bag.fieldMonitorSchedules!);
 
-    final user = await prefsOGx.getUser();
+    final user = await getIt<PrefsOGx>().getUser();
     for (var element in bag.users!) {
       if (element.userId == user!.userId) {
-        await prefsOGx.saveUser(OldToRealm.getUser(user));
+        await getIt<PrefsOGx>().saveUser(OldToRealm.getUser(user));
       }
     }
     final end = DateTime.now();

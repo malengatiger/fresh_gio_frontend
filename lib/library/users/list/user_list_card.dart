@@ -5,6 +5,7 @@ import 'package:focused_menu/modals.dart';
 import 'package:freshgio/l10n/translation_handler.dart';
 import 'package:freshgio/library/api/prefs_og.dart';
 
+import '../../../initializer.dart';
 import '../../data/user.dart';
 import '../../functions.dart';
 import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
@@ -56,7 +57,7 @@ class _UserListCardState extends State<UserListCard> {
   }
 
   void _setTexts() async {
-    var sett = await prefsOGx.getSettings();
+    var sett = await getIt<PrefsOGx>().getSettings();
     callMember = await translator.translate('callMember', sett.locale!);
     sendMemberMessage = await translator.translate('sendMemberMessage', sett.locale!);
     memberDashboard = await translator.translate('memberDashboard', sett.locale!);

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:freshgio/realm_data/data/realm_sync_api.dart';
 import 'package:freshgio/ui/activity/geo_activity.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../device_location/device_location_bloc.dart';
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
 import '../../api/data_api_og.dart';
 import '../../api/prefs_og.dart';
@@ -17,11 +17,7 @@ import '../../bloc/organization_bloc.dart';
 import '../../bloc/project_bloc.dart';
 import '../../cache_manager.dart';
 import '../../data/city.dart';
-import '../../data/location_response.dart';
-import '../../data/place_mark.dart';
 import '../../data/position.dart' as mon;
-import '../../data/project.dart';
-import '../../data/project_polygon.dart';
 import '../../data/project_position.dart';
 import '../../data/user.dart';
 import '../../functions.dart';
@@ -151,7 +147,7 @@ class ProjectLocationHandlerState extends State<ProjectLocationHandler>
     });
 
     try {
-      user = await prefsOGx.getUser();
+      user = await getIt<PrefsOGx>().getUser();
       await _getLocation();
       var map = await getStartEndDates();
       final startDate = map['startDate'];
@@ -216,7 +212,7 @@ class ProjectLocationHandlerState extends State<ProjectLocationHandler>
       //     pp('$mm Placemark for project location: ${pm.toString()}');
       //   }
       // // }
-      var org = await prefsOGx.getUser();
+      var org = await getIt<PrefsOGx>().getUser();
       final sett = await cacheManager.getSettings();
       final projectLocationAdded =
           await translator.translate('projectLocationAdded', sett.locale!);

@@ -5,6 +5,7 @@ import 'package:freshgio/library/ui/project_location/project_location_handler.da
 import 'package:page_transition/page_transition.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 
+import '../../../initializer.dart';
 import '../../../ui/activity/geo_activity.dart';
 import '../../api/data_api_og.dart';
 import '../../api/prefs_og.dart';
@@ -14,8 +15,6 @@ import '../../bloc/geo_uploader.dart';
 import '../../bloc/organization_bloc.dart';
 import '../../bloc/project_bloc.dart';
 import '../../cache_manager.dart';
-import '../../data/location_response.dart';
-import '../../data/project.dart';
 import '../../data/user.dart';
 import '../../functions.dart';
 import '../maps/location_response_map.dart';
@@ -74,8 +73,8 @@ class ProjectEditorTabletState extends State<ProjectEditorTablet>
   }
 
   void _getUser() async {
-    admin = await prefsOGx.getUser();
-    var sett = await prefsOGx.getSettings();
+    admin = await getIt<PrefsOGx>().getUser();
+    var sett = await getIt<PrefsOGx>().getSettings();
     projectEditor = await translator.translate('projectEditor', sett.locale!);
     editProject = await translator.translate('editProject', sett.locale!);
     newProject = await translator.translate('newProject', sett.locale!);
@@ -88,7 +87,7 @@ class ProjectEditorTabletState extends State<ProjectEditorTablet>
   }
 
   void _setup() async {
-    var sett = await prefsOGx.getSettings();
+    var sett = await getIt<PrefsOGx>().getSettings();
     if (widget.project != null) {
       nameController.text = widget.project!.name!;
       descController.text = widget.project!.description!;

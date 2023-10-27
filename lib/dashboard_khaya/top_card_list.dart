@@ -42,6 +42,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:universal_platform/universal_platform.dart';
 
+import '../initializer.dart';
 import '../l10n/translation_handler.dart';
 import '../library/api/data_api_og.dart';
 import '../library/bloc/cloud_storage_bloc.dart';
@@ -137,7 +138,7 @@ class TopCardListState extends State<TopCardList> {
       setState(() {
         busy = true;
       });
-      var user = await prefsOGx.getUser();
+      var user = await getIt<PrefsOGx>().getUser();
       widget.realmSyncApi.projectStream.listen((event) {
         pp('$mm projectStream delivered ${event.length}');
         setState(() {
@@ -214,7 +215,7 @@ class TopCardListState extends State<TopCardList> {
   late SettingsModel settings;
 
   Future _setTexts() async {
-    settings = await prefsOGx.getSettings();
+    settings = await getIt<PrefsOGx>().getSettings();
     photosText = await translator.translate('photos', settings.locale!);
     videosText = await translator.translate('videos', settings.locale!);
     audiosText = await translator.translate('audioClips', settings.locale!);
@@ -328,7 +329,7 @@ class TopCardListState extends State<TopCardList> {
                         locale: settings.locale!,
                         cacheManager: cacheManager,
                         dataApiDog: dataApiDog,
-                        prefsOGx: prefsOGx,
+                        prefsOGx: getIt<PrefsOGx>(),
                         fcmBloc: fcmBloc,
                         projectBloc: projectBloc,
                         organizationBloc: organizationBloc,

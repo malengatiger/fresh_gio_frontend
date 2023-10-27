@@ -13,6 +13,7 @@ import 'package:freshgio/ui/activity/user_profile_card.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
 import '../functions.dart';
 import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
@@ -46,7 +47,7 @@ class UserBatchControlState extends State<UserBatchControl>
   }
 
   Future _setTexts() async {
-    final sett = await prefsOGx.getSettings();
+    final sett = await getIt<PrefsOGx>().getSettings();
     pickMemberBatchFile =
         await translator.translate('pickMemberBatchFile', sett.locale!);
     memberUploadFailed =
@@ -60,7 +61,7 @@ class UserBatchControlState extends State<UserBatchControl>
   }
 
   void _getUser() async {
-    var p = await prefsOGx.getUser();
+    var p = await getIt<PrefsOGx>().getUser();
     user = OldToRealm.getUser(p!);
     pp('$mm user: ${p.toJson()}');
   }
@@ -107,7 +108,7 @@ class UserBatchControlState extends State<UserBatchControl>
     users = await geoUploader.startUserBatchUpload(
         organizationId: user!.organizationId!, file: file);
     pp('$mm users uploaded: ${users.length}');
-    final sett = await prefsOGx.getSettings();
+    final sett = await getIt<PrefsOGx>().getSettings();
 
     for (var mUser in users) {
       switch (mUser.userType) {

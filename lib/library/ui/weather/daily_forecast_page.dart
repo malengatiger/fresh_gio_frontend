@@ -6,6 +6,7 @@ import 'package:freshgio/library/cache_manager.dart';
 import 'package:lat_lng_to_timezone/lat_lng_to_timezone.dart';
 
 
+import '../../../initializer.dart';
 import '../../api/data_api_og.dart';
 import '../../api/prefs_og.dart';
 import '../../bloc/organization_bloc.dart';
@@ -51,7 +52,7 @@ class DailyForecastPageState extends State<DailyForecastPage>
     Future.delayed(const Duration(milliseconds: 200), () async {
       try {
         pp('$mm  get project positions and get forecast for each ....');
-        user = await prefsOGx.getUser();
+        user = await getIt<PrefsOGx>().getUser();
         var mapX = await getStartEndDates();
         final startDate = mapX['startDate'];
         final endDate = mapX['endDate'];

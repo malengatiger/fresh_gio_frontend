@@ -6,12 +6,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
 import '../../api/prefs_og.dart';
-import '../../bloc/organization_bloc.dart';
 import '../../cache_manager.dart';
 import '../../data/project.dart';
-import '../../data/user.dart';
 import '../../functions.dart';
 import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
 
@@ -39,7 +38,7 @@ class ProjectEditMobileState extends State<ProjectEditMobile>
       enterDescription, enterDistance, descriptionOfProject;
 
   Future _setTexts() async {
-    final sett = await prefsOGx.getSettings();
+    final sett = await getIt<PrefsOGx>().getSettings();
     projectEditor = await translator.translate('projectEditor', sett.locale!);
 
     projectName = await translator.translate('projectName', sett.locale!);
@@ -69,7 +68,7 @@ class ProjectEditMobileState extends State<ProjectEditMobile>
   }
 
   void _getUser() async {
-    var p = await prefsOGx.getUser();
+    var p = await getIt<PrefsOGx>().getUser();
     admin = OldToRealm.getUser(p!);
     if (admin != null) {
       pp('🎽 🎽 🎽 We have an admin user? 🎽 🎽 🎽 ${admin!.name!}');
@@ -78,7 +77,7 @@ class ProjectEditMobileState extends State<ProjectEditMobile>
   }
 
   void _setup() async {
-    var p = await prefsOGx.getSettings();
+    var p = await getIt<PrefsOGx>().getSettings();
     if (widget.project != null) {
       nameController.text = widget.project!.name!;
       descController.text = widget.project!.description!;

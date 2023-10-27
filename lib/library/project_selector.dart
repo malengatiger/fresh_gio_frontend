@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshgio/library/api/prefs_og.dart';
 import 'package:freshgio/library/bloc/organization_bloc.dart';
 
+import '../initializer.dart';
 import 'data/project.dart';
 import 'functions.dart';
 
@@ -27,7 +28,7 @@ class ProjectSelectorState extends State<ProjectSelector>
   }
 
   void _getProjects(bool forceRefresh) async {
-    var user = await prefsOGx.getUser();
+    var user = await getIt<PrefsOGx>().getUser();
     if (user == null) {
       return;
     }

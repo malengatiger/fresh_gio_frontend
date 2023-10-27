@@ -6,28 +6,22 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:freshgio/library/api/data_api_og.dart';
-import 'package:freshgio/library/api/prefs_og.dart';
-import 'package:freshgio/library/bloc/cloud_storage_bloc.dart';
 import 'package:freshgio/library/bloc/geo_exception.dart';
 import 'package:freshgio/library/bloc/old_to_realm.dart';
-import 'package:freshgio/library/bloc/organization_bloc.dart';
 import 'package:freshgio/library/bloc/photo_for_upload.dart';
 import 'package:freshgio/library/bloc/video_for_upload.dart';
 import 'package:freshgio/library/errors/error_handler.dart';
 import 'package:freshgio/realm_data/data/realm_sync_api.dart';
 
 import '../../device_location/device_location_bloc.dart';
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
+import '../api/prefs_og.dart';
 import '../auth/app_auth.dart';
 import '../cache_manager.dart';
-import '../data/audio.dart';
-import '../data/photo.dart';
-import '../data/user.dart';
-import '../data/video.dart';
 import '../functions.dart';
 import 'audio_for_upload.dart';
 import 'isolate_functions.dart';
-import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
 import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
 
 late GeoUploader geoUploader;
@@ -52,13 +46,13 @@ class GeoUploader {
 
   Future manageMediaUploads() async {
     pp('$xx ............ manageMediaUploads: starting ... 🔵🔵🔵');
-    var s = await prefsOGx.getUser();
+    var s = await getIt<PrefsOGx>().getUser();
     if (s == null) {
       return;
     }
     try {
-      var user = await prefsOGx.getUser();
-      var proj = await prefsOGx.getProject();
+      var user = await getIt<PrefsOGx>().getUser();
+      var proj = await getIt<PrefsOGx>().getProject();
       String? projectId, countryId;
       if (user != null) {
         countryId = user.userId;
@@ -190,7 +184,7 @@ class GeoUploader {
 
   Future<mrm.Photo?> _startPhotoUpload(PhotoForUpload photoForUploading) async {
     pp('$xx ... _startPhotoUpload ..... run isolate');
-    var p = await prefsOGx.getUser();
+    var p = await getIt<PrefsOGx>().getUser();
     user = OldToRealm.getUser(p!);
     try {
       String? url = getUrl();
@@ -224,7 +218,7 @@ class GeoUploader {
 
       if (user == null) {
         pp('🔴🔴🔴🔴🔴🔴🔴🔴 user is null. WTF? 🔴🔴');
-        final sett = await prefsOGx.getSettings();
+        final sett = await getIt<PrefsOGx>().getSettings();
         final serverProblem =
             await translator.translate('serverProblem', sett.locale!);
         throw serverProblem;
@@ -273,7 +267,7 @@ class GeoUploader {
     required String messageFromGeo,
   }) async {
 
-    var p = await prefsOGx.getUser();
+    var p = await getIt<PrefsOGx>().getUser();
     user = OldToRealm.getUser(p!);
     try {
       String? url = getUrl();
@@ -342,7 +336,7 @@ class GeoUploader {
       {required String organizationId, required File file}) async {
     String url = getUrl();
     var token = await appAuth.getAuthToken();
-    final sett = await prefsOGx.getSettings();
+    final sett = await getIt<PrefsOGx>().getSettings();
     final tt = await translator.translate('messageFromGeo', sett.locale!);
     final tm = await translator.translate('memberAddedChanged', sett.locale!);
     var users = await Isolate.run(() async => await uploadUserFile(
@@ -361,7 +355,7 @@ class GeoUploader {
     required String audioArrived,
     required String messageFromGeo,
   }) async {
-    var p = await prefsOGx.getUser();
+    var p = await getIt<PrefsOGx>().getUser();
     user = OldToRealm.getUser(p!);
     try {
       String? url = getUrl();

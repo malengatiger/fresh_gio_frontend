@@ -15,6 +15,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:realm/realm.dart';
 
 import '../../../device_location/device_location_bloc.dart';
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
 import '../../api/data_api_og.dart';
 import '../../api/prefs_og.dart';
@@ -111,7 +112,7 @@ class PhotoHandlerState extends State<PhotoHandler>
 
   void _startPhoto() async {
     pp('$mm photo taking started ....');
-    var settings = await prefsOGx.getSettings();
+    var settings = await getIt<PrefsOGx>().getSettings();
     var height = 640.0, width = 480.0;
     switch (settings.photoSize) {
       case 0:

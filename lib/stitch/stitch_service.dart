@@ -9,6 +9,7 @@ import 'package:freshgio/library/errors/error_handler.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:http/http.dart' as http;
 
+import '../initializer.dart';
 import '../library/data/stitch/payment_request.dart';
 import '../library/functions.dart';
 
@@ -206,7 +207,7 @@ The externalReference field is restricted to a maximum of 4096 characters.
       GioPaymentRequest request, String token) async {
     pp('$mm sendGraphQlPaymentRequest; token: $token');
     await _initialize(token);
-    var user = await prefsOGx.getUser();
+    var user = await getIt<PrefsOGx>().getUser();
     var payerRef = request.payerReference!
         .substring(0, min(request.payerReference!.length, 12));
     var beneficiaryReference = request.beneficiaryReference!

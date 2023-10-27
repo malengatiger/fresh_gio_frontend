@@ -9,21 +9,18 @@ import 'package:freshgio/library/api/prefs_og.dart';
 import 'package:freshgio/library/bloc/cloud_storage_bloc.dart';
 import 'package:freshgio/library/bloc/old_to_realm.dart';
 import 'package:freshgio/library/data/audio.dart';
-import 'package:freshgio/library/data/project.dart';
-import 'package:freshgio/library/data/video.dart';
 import 'package:freshgio/library/ui/camera/video_controls.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../device_location/device_location_bloc.dart';
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
-import '../../bloc/fcm_bloc.dart';
 import '../../bloc/geo_uploader.dart';
 import '../../bloc/video_for_upload.dart';
 import '../../cache_manager.dart';
 import '../../data/position.dart';
-import '../../data/project_position.dart';
 import '../../data/settings_model.dart';
 import '../../functions.dart';
 import '../../generic_functions.dart';
@@ -158,7 +155,7 @@ class VideoRecorderState extends State<VideoRecorder>
       busy = true;
     });
     try {
-      var p = await prefsOGx.getUser();
+      var p = await getIt<PrefsOGx>().getUser();
       user = OldToRealm.getUser(p!);
       cameras = await availableCameras();
 

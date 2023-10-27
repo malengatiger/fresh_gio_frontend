@@ -1,15 +1,13 @@
 import 'package:badges/badges.dart' as bd;
 import 'package:flutter/material.dart';
 import 'package:freshgio/library/bloc/old_to_realm.dart';
-import 'package:freshgio/library/data/audio.dart';
-import 'package:freshgio/library/data/photo.dart';
-import 'package:freshgio/library/data/video.dart';
 import 'package:freshgio/library/users/edit/user_form.dart';
 import 'package:freshgio/ui/activity/geo_activity.dart';
 import 'package:freshgio/ui/activity/user_profile_card.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
 import '../../api/data_api_og.dart';
 import '../../api/prefs_og.dart';
@@ -19,10 +17,6 @@ import '../../bloc/geo_uploader.dart';
 import '../../bloc/organization_bloc.dart';
 import '../../bloc/project_bloc.dart';
 import '../../cache_manager.dart';
-import '../../data/country.dart';
-import '../../data/location_response.dart';
-import '../../data/project.dart';
-import '../../data/user.dart' as ar;
 import '../../functions.dart';
 import '../../ui/maps/location_response_map.dart';
 import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
@@ -71,9 +65,9 @@ class UserEditorState extends State<UserEditor>
   }
 
   void _getAdministrator() async {
-    var p = await prefsOGx.getUser();
+    var p = await getIt<PrefsOGx>().getUser();
     admin = OldToRealm.getUser(p!);
-    var sett = await prefsOGx.getSettings();
+    var sett = await getIt<PrefsOGx>().getSettings();
     title = await translator.translate('editMember', sett.locale!);
 
     setState(() {});

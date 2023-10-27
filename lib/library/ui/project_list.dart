@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../initializer.dart';
 import '../api/data_api_og.dart';
 import '../api/prefs_og.dart';
 import '../data/user.dart';
@@ -29,7 +30,7 @@ class ProjectListState extends State<ProjectList> {
   }
 
   _getData() async {
-    user = await prefsOGx.getUser();
+    user = await getIt<PrefsOGx>().getUser();
     setState(() {
       isBusy = true;
     });

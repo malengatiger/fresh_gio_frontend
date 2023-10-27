@@ -11,6 +11,7 @@ import 'package:freshgio/ui/activity/gio_activities.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:universal_platform/universal_platform.dart';
 
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
 import '../../library/api/data_api_og.dart';
 import '../../library/bloc/cloud_storage_bloc.dart';
@@ -122,7 +123,7 @@ class GeoActivityState extends State<GeoActivity>
   }
 
   void _getSettings() async {
-    settings = await prefsOGx.getSettings();
+    settings = await getIt<PrefsOGx>().getSettings();
     setState(() {});
   }
 
@@ -164,7 +165,7 @@ class GeoActivityState extends State<GeoActivity>
 
   Future<void> _handleGeofenceEvent(GeofenceEvent event) async {
     pp('$mm _handleGeofenceEvent ....');
-    var settings = await prefsOGx.getSettings();
+    var settings = await getIt<PrefsOGx>().getSettings();
     final arr = await translator.translate('memberArrived', settings.locale!);
     if (event.projectName != null) {
       var arrivedAt = arr.replaceAll('\$project', event.projectName!);

@@ -106,7 +106,7 @@ class _RecentEventListState extends State<RecentEventList> {
                     ));
               }),
         );
-      },
+      }, stream: realmSyncApi.orgActivityStream,
     );
   }
 }

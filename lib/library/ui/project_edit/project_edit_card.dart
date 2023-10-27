@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:freshgio/library/api/prefs_og.dart';
 import 'package:freshgio/library/bloc/old_to_realm.dart';
 import 'package:freshgio/library/functions.dart';
 import 'package:freshgio/realm_data/data/realm_sync_api.dart';
 import 'package:realm/realm.dart';
 
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
+import '../../api/prefs_og.dart';
 import '../../bloc/project_bloc.dart';
 import '../../cache_manager.dart';
-import '../../data/project.dart';
-import '../../data/user.dart' as old;
 import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
 
 class ProjectEditCard extends StatefulWidget {
@@ -50,7 +49,7 @@ class ProjectEditCardState extends State<ProjectEditCard>
     _getUser();
   }
   void _setControllers() async {
-    var sett = await prefsOGx.getSettings();
+    var sett = await getIt<PrefsOGx>().getSettings();
     if (widget.project != null) {
       nameController = TextEditingController(text: widget.project!.name!);
       descController = TextEditingController(text: widget.project!.description!);
@@ -58,7 +57,7 @@ class ProjectEditCardState extends State<ProjectEditCard>
     }
   }
   Future _setTexts() async {
-    final sett = await prefsOGx.getSettings();
+    final sett = await getIt<PrefsOGx>().getSettings();
     projectEditor = await translator.translate('projectEditor', sett.locale!);
 
     projectName = await translator.translate('projectName', sett.locale!);
@@ -80,7 +79,7 @@ class ProjectEditCardState extends State<ProjectEditCard>
 
 
   void _getUser() async {
-    var p = await prefsOGx.getUser();
+    var p = await getIt<PrefsOGx>().getUser();
     admin = OldToRealm.getUser(p!);
 
     setState(() {

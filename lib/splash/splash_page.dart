@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshgio/library/api/prefs_og.dart';
 import 'package:get_storage/get_storage.dart';
 
+import '../initializer.dart';
 import '../l10n/translation_handler.dart';
 import '../library/functions.dart';
 
@@ -25,8 +26,7 @@ class _SplashWidgetState extends State<SplashWidget> {
 
   void _performSetup() async {
     await GetStorage.init(cacheName);
-    prefsOGx = PrefsOGx();
-    var sett = await prefsOGx.getSettings();
+    var sett = await getIt<PrefsOGx>().getSettings();
     message = await translator.translate('weHelpYou', sett.locale!);
     if (mounted) {
       setState(() {});

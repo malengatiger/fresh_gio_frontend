@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:freshgio/library/data/settings_model.dart';
 import 'package:freshgio/library/ui/settings/settings_form.dart';
 
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
 import '../../api/prefs_og.dart';
 import '../../bloc/fcm_bloc.dart';
@@ -60,8 +61,8 @@ class SettingsFormMonitorState extends State<SettingsFormMonitor> {
 
   Future _getSettings() async {
     pp('$mm 🍎🍎 ............. getting user from prefs ...');
-    user = await prefsOGx.getUser();
-    settingsModel = await prefsOGx.getSettings();
+    user = await getIt<PrefsOGx>().getUser();
+    settingsModel = await getIt<PrefsOGx>().getSettings();
       currentLocale = settingsModel!.locale!;
 
     _setExistingSettings();
@@ -139,7 +140,7 @@ class SettingsFormMonitorState extends State<SettingsFormMonitor> {
       if (settingsModel!.activityStreamHours == null ||
           settingsModel!.activityStreamHours == 0) {
         settingsModel!.activityStreamHours = 24;
-        await prefsOGx.saveSettings(settingsModel!);
+        await getIt<PrefsOGx>().saveSettings(settingsModel!);
       }
     }
     settingsModel ??= getBaseSettings();
@@ -447,7 +448,7 @@ class SettingsFormMonitorState extends State<SettingsFormMonitor> {
                         final messageFromGeo = msg.replaceAll('\$geo', 'Gio');
                         settingsModel!.translatedTitle = messageFromGeo;
                         settingsModel!.translatedMessage = msg2;
-                        prefsOGx.saveSettings(settingsModel!);
+                        getIt<PrefsOGx>().saveSettings(settingsModel!);
                       }
                       setState(() {
                         showColorPicker = false;
@@ -469,10 +470,10 @@ class SettingsFormMonitorState extends State<SettingsFormMonitor> {
   void _handleLocaleChange(Locale locale, String translatedLanguage) async {
     pp('$mm onLocaleChange ... going to ${locale.languageCode} : $translatedLanguage');
 
-    settingsModel = await prefsOGx.getSettings();
+    settingsModel = await getIt<PrefsOGx>().getSettings();
 
       settingsModel!.locale = locale.languageCode;
-      await prefsOGx.saveSettings(settingsModel!);
+      await getIt<PrefsOGx>().saveSettings(settingsModel!);
       await translator.translate('settings', settingsModel!.locale!);
       fcmBloc.settingsStreamController.sink.add(settingsModel!);
       themeBloc.changeToLocale(locale.languageCode);

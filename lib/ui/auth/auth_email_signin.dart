@@ -8,6 +8,7 @@ import 'package:freshgio/library/bloc/theme_bloc.dart';
 import 'package:freshgio/library/data/settings_model.dart';
 import 'package:freshgio/library/functions.dart';
 
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
 import '../../library/api/data_api_og.dart';
 import '../../library/bloc/old_to_realm.dart';
@@ -59,9 +60,9 @@ class AuthEmailSignInState extends State<AuthEmailSignIn> {
   }
 
   Future _setTexts() async {
-    settingsModel = await prefsOGx.getSettings();
+    settingsModel = await getIt<PrefsOGx>().getSettings();
       settingsModel =getBaseSettings();
-      await prefsOGx.saveSettings(settingsModel!);
+      await getIt<PrefsOGx>().saveSettings(settingsModel!);
 
     signInText = await translator.translate('signIn', settingsModel!.locale!);
     enterEmail = await translator.translate('enterEmail', settingsModel!.locale!);
@@ -95,7 +96,7 @@ class AuthEmailSignInState extends State<AuthEmailSignIn> {
       if (userCred.user != null) {
         var user = await dataApiDog.getUserById(userId: userCred.user!.uid);
         if (user != null) {
-          await prefsOGx.saveUser(OldToRealm.getUser(user));
+          await getIt<PrefsOGx>().saveUser(OldToRealm.getUser(user));
           var map = await getStartEndDates();
           final startDate = map['startDate'];
           final endDate = map['endDate'];
@@ -108,7 +109,7 @@ class AuthEmailSignInState extends State<AuthEmailSignIn> {
               await dataApiDog.getOrganizationSettings(user.organizationId!);
           settingsList.sort((a, b) => b.created!.compareTo(a.created!));
 
-          await prefsOGx.saveSettings(settingsList.first);
+          await getIt<PrefsOGx>().saveSettings(settingsList.first);
           await themeBloc.changeToTheme(settingsList.first.themeIndex!);
           String? txt =
               await translator.translate('memberSignedIn', settingsList.first.locale!);

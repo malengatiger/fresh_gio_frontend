@@ -6,7 +6,6 @@ import 'package:animations/animations.dart';
 import 'package:badges/badges.dart' as bd;
 import 'package:flutter/material.dart';
 import 'package:freshgio/library/api/data_api_og.dart';
-import 'package:freshgio/library/api/prefs_og.dart';
 import 'package:freshgio/library/bloc/fcm_bloc.dart';
 import 'package:freshgio/library/bloc/old_to_realm.dart';
 import 'package:freshgio/library/bloc/organization_bloc.dart';
@@ -15,12 +14,11 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../device_location/device_location_bloc.dart';
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
+import '../../api/prefs_og.dart';
 import '../../cache_manager.dart';
-import '../../data/city.dart';
-import '../../data/photo.dart';
 import '../../data/position.dart' as local;
-import '../../data/project.dart';
 import '../../data/project_polygon.dart';
 import '../../data/project_position.dart';
 import '../../data/user.dart';
@@ -84,7 +82,7 @@ class ProjectMapMobileState extends State<ProjectMapMobile>
   }
 
   void _setTexts() async {
-    var p = await prefsOGx.getSettings();
+    var p = await getIt<PrefsOGx>().getSettings();
     settings = OldToRealm.getSettings(p);
     title = await translator.translate('projectLocationsMap', settings.locale!);
     locations = await translator.translate('locations', settings.locale!);
@@ -162,7 +160,7 @@ class ProjectMapMobileState extends State<ProjectMapMobile>
   }
 
   void _getUser() async {
-    var p  = await prefsOGx.getUser();
+    var p  = await getIt<PrefsOGx>().getUser();
     user = OldToRealm.getUser(p!);
     var loc = await locationBloc.getLocation();
     currentLat = loc?.latitude;

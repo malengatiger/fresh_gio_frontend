@@ -2,15 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:freshgio/library/api/prefs_og.dart';
-import 'package:freshgio/library/data/audio.dart';
-import 'package:freshgio/library/data/photo.dart';
-import 'package:freshgio/library/data/video.dart';
 import 'package:freshgio/library/ui/settings/settings_form.dart';
 import 'package:freshgio/realm_data/data/realm_sync_api.dart';
 import 'package:freshgio/ui/activity/geo_activity.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
 import '../../api/data_api_og.dart';
 import '../../bloc/cloud_storage_bloc.dart';
@@ -20,8 +18,6 @@ import '../../bloc/isolate_handler.dart';
 import '../../bloc/organization_bloc.dart';
 import '../../bloc/project_bloc.dart';
 import '../../cache_manager.dart';
-import '../../data/location_response.dart';
-import '../../data/project.dart';
 import '../../data/settings_model.dart';
 import '../../functions.dart';
 import '../maps/location_response_map.dart';
@@ -67,7 +63,7 @@ class SettingsTabletState extends State<SettingsTablet>
 
   String? title;
   Future _setTexts() async {
-    var sett = await prefsOGx.getSettings();
+    var sett = await getIt<PrefsOGx>().getSettings();
     title = await translator.translate('settings', sett.locale!);
     setState(() {});
   }

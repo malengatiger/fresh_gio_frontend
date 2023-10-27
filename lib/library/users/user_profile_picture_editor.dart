@@ -4,10 +4,8 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:freshgio/library/api/prefs_og.dart';
 import 'package:freshgio/library/bloc/fcm_bloc.dart';
 import 'package:freshgio/library/bloc/geo_exception.dart';
-import 'package:freshgio/library/bloc/old_to_realm.dart';
 import 'package:freshgio/library/errors/error_handler.dart';
 import 'package:freshgio/library/functions.dart';
 import 'package:freshgio/realm_data/data/realm_sync_api.dart';
@@ -15,7 +13,9 @@ import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
+import '../api/prefs_og.dart';
 import '../data/settings_model.dart';
 import '../generic_functions.dart';
 
@@ -76,7 +76,7 @@ class UserProfilePictureEditorState extends State<UserProfilePictureEditor>
   late SettingsModel sett;
 
   Future _setTexts() async {
-    sett = await prefsOGx.getSettings();
+    sett = await getIt<PrefsOGx>().getSettings();
     profileInstruction =
         await translator.translate('profileInstruction', sett.locale!);
     useCamera = await translator.translate('useCamera', sett.locale!);
@@ -206,7 +206,7 @@ class UserProfilePictureEditorState extends State<UserProfilePictureEditor>
       thumbUrl = await thumbTaskSnapshot.ref.getDownloadURL();
       pp('$mm thumbnail file url is available, meaning that upload is complete: \n$thumbUrl');
       //_printSnapshot(thumbTaskSnapshot, 'PHOTO THUMBNAIL');
-      var ff = await prefsOGx.getUser();
+      var ff = await getIt<PrefsOGx>().getUser();
       pp('$mm ......... about to update database ...');
       await _updateDatabase(userId: widget.user.userId!, imageUrl: url!, thumbUrl: thumbUrl!);
     } catch (e) {

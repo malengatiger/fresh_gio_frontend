@@ -18,6 +18,7 @@ import 'package:uuid/uuid.dart';
 import 'package:video_thumbnail/video_thumbnail.dart' as vt;
 
 import '../device_location/device_location_bloc.dart';
+import '../initializer.dart';
 import '../l10n/translation_handler.dart';
 import 'api/prefs_og.dart';
 import 'cache_manager.dart';
@@ -929,7 +930,7 @@ showSnackBar(
 @Deprecated('Deprecated, please use getStartEndDatesFromDays')
 Future<Map<String, String>> getStartEndDates({int? numberOfDays}) async {
   int numberOfDays = 7;
-  var settings = await prefsOGx.getSettings();
+  var settings = await getIt<PrefsOGx>().getSettings();
   numberOfDays = settings.numberOfDays!;
   var startDate = DateTime.now()
       .subtract(Duration(days: numberOfDays))
@@ -976,7 +977,7 @@ void sortActivitiesAscending(List<mrm.ActivityModel> models) {
 
 Future<String?> getTranslatedUserType(String type) async {
   String? translated;
-  final sett = await prefsOGx.getSettings();
+  final sett = await getIt<PrefsOGx>().getSettings();
 
   switch (type) {
     case UserType.fieldMonitor:

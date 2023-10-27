@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:freshgio/library/api/prefs_og.dart';
 import 'package:freshgio/library/bloc/isolate_handler.dart';
 
+import '../../initializer.dart';
 import '../functions.dart';
 
 late IosPollingControl pollingControl;
@@ -18,7 +19,7 @@ class IosPollingControl {
   void startTimer() async {
     pp('\n\n$mm starting timer to control data refresh for iOS ... 🍎 and maybe Android?');
 
-    final sett = await prefsOGx.getSettings();
+    final sett = await getIt<PrefsOGx>().getSettings();
     sett.refreshRateInMinutes ??= 2;
     final rateInSeconds = sett.refreshRateInMinutes! * 60;
 

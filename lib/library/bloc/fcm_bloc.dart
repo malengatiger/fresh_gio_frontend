@@ -16,6 +16,7 @@ import 'package:freshgio/realm_data/data/realm_sync_api.dart';
 import 'package:get_storage/get_storage.dart';
 
 import '../../device_location/device_location_bloc.dart';
+import '../../initializer.dart';
 import '../api/prefs_og.dart';
 import '../auth/app_auth.dart';
 import '../cache_manager.dart';
@@ -54,7 +55,7 @@ class FCMBloc {
     this.realmAppServices,
   ) {
     isolateHandler =
-        IsolateDataHandler(prefsOGx, appAuth, cacheManager, realmSyncApi);
+        IsolateDataHandler(getIt<PrefsOGx>(), appAuth, cacheManager, realmSyncApi);
   }
   final mm = '🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎 FCMBloc: 🔵🔵 ';
 
@@ -136,7 +137,7 @@ class FCMBloc {
   Future initialize() async {
 
     pp("\n\n$mm FCM : initialize ....... FIREBASE MESSAGING ...........................\n");
-    user = await prefsOGx.getUser();
+    user = await getIt<PrefsOGx>().getUser();
     var os = 'Android';
     try {
       if (Platform.isIOS) {
@@ -233,7 +234,7 @@ class FCMBloc {
   }
 
   Future subscribeToTopics() async {
-    var user = await prefsOGx.getUser();
+    var user = await getIt<PrefsOGx>().getUser();
     if (user == null) {
       pp('User is null ... what de fuck??? ${E.redDot}${E.redDot}${E.redDot}${E.redDot}${E.redDot}${E.redDot}${E.redDot}${E.redDot}');
       return;
@@ -309,7 +310,7 @@ class FCMBloc {
 
   Future<void> parseRemoteMessage(Map<dynamic, dynamic> data) async {
     await GetStorage.init(cacheName);
-    User? user = await prefsOGx.getUser();
+    User? user = await getIt<PrefsOGx>().getUser();
     if (data['kill'] != null) {
       pp("$mm processFCMMessage:  $blue ........................... 🍎🍎🍎🍎🍎🍎kill USER!!  🍎  🍎 ");
       var m = jsonDecode(data['kill']);
@@ -317,7 +318,7 @@ class FCMBloc {
 
       if (receivedUser.userId! == user!.userId!) {
         pp("$mm processFCMMessage  $blue This act is about to be killed: ${receivedUser.name!} ......");
-        prefsOGx.deleteUser();
+        getIt<PrefsOGx>().deleteUser();
         auth.FirebaseAuth.instance.signOut();
         pp('$mm 🌀🌀🌀🌀  🍎 Signed out of Firebase!!! 🍎 ');
 
@@ -373,7 +374,7 @@ class FCMBloc {
       var m = jsonDecode(data['user']);
       var mUser = User.fromJson(m);
       if (mUser.userId == user!.userId) {
-        await prefsOGx.saveUser(OldToRealm.getUser(mUser));
+        await getIt<PrefsOGx>().saveUser(OldToRealm.getUser(mUser));
       }
       await cacheManager.addUser(user: user);
       userController.sink.add(user);
@@ -447,7 +448,7 @@ class FCMBloc {
       await cacheManager.addSettings(settings: settings);
       if (settings.projectId == null) {
         pp('$mm This is an organization-wide setting, update the cached settings ...');
-        await prefsOGx.saveSettings(settings);
+        await getIt<PrefsOGx>().saveSettings(settings);
         await cacheManager.addSettings(settings: settings);
         await themeBloc.changeToTheme(settings.themeIndex!);
         settingsStreamController.sink.add(settings);
@@ -495,7 +496,7 @@ Future<void> geoFirebaseMessagingBackgroundHandler(
   pp("\n\n$vv  onMessage: 🍎 🍎 data: ${message.data} ... 🍎 🍎\n ");
 
   await GetStorage.init(cacheName);
-  var user = await prefsOGx.getUser();
+  var user = await getIt<PrefsOGx>().getUser();
   Map data = message.data;
   if (data['locationRequest'] == null) {
     //todo - ignoring other message types

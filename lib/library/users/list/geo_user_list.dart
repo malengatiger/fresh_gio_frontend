@@ -5,12 +5,8 @@ import 'package:freshgio/library/api/data_api_og.dart';
 import 'package:freshgio/library/api/prefs_og.dart';
 import 'package:freshgio/library/bloc/old_to_realm.dart';
 import 'package:freshgio/library/bloc/organization_bloc.dart';
-import 'package:freshgio/library/data/photo.dart';
-import 'package:freshgio/library/data/video.dart';
 import 'package:freshgio/library/users/edit/user_edit_main.dart';
-import 'package:freshgio/library/users/edit/user_edit_tablet.dart';
 import 'package:freshgio/library/users/list/user_list_card.dart';
-import 'package:freshgio/realm_data/data/app_services.dart';
 import 'package:freshgio/realm_data/data/realm_sync_api.dart';
 import 'package:freshgio/ui/activity/geo_activity.dart';
 import 'package:freshgio/ui/dashboard/user_dashboard.dart';
@@ -18,6 +14,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
 import '../../../ui/audio/gio_audio_player.dart';
 import '../../../ui/dashboard/photo_frame.dart';
@@ -28,7 +25,6 @@ import '../../bloc/geo_uploader.dart';
 import '../../bloc/location_request_handler.dart';
 import '../../bloc/project_bloc.dart';
 import '../../cache_manager.dart';
-import '../../data/audio.dart';
 import '../../data/location_response.dart';
 import '../../data/settings_model.dart';
 import '../../data/user.dart';
@@ -165,7 +161,7 @@ class _GioUserListState extends State<GioUserList> {
   final mm = '🔵🔵🔵🔵🔵🔵 UserListTabletLandscape: ';
   String? subTitle;
   Future _setTexts() async {
-    var sett = await prefsOGx.getSettings();
+    var sett = await getIt<PrefsOGx>().getSettings();
     title = await translator.translate('members', sett!.locale!);
     subTitle =
         await translator.translate('administratorsMembers', sett!.locale!);
@@ -178,7 +174,7 @@ class _GioUserListState extends State<GioUserList> {
       busy = true;
     });
     try {
-      var p = await prefsOGx.getUser();
+      var p = await getIt<PrefsOGx>().getUser();
       user = OldToRealm.getUser(p!);
       realmSyncApi.organizationUserStream.listen((event) {
         pp('$mm organizationUserStream: data refreshed, users: ${users.length}');
@@ -196,7 +192,7 @@ class _GioUserListState extends State<GioUserList> {
           busy = false;
         });
         if (e is GeoException) {
-          var sett = await prefsOGx.getSettings();
+          var sett = await getIt<PrefsOGx>().getSettings();
           errorHandler.handleError(exception: e);
           final msg =
               await translator.translate(e.geTranslationKey(), sett.locale!);
@@ -348,7 +344,7 @@ class _GioUserListState extends State<GioUserList> {
       busy = true;
     });
     try {
-      var user = await prefsOGx.getUser();
+      var user = await getIt<PrefsOGx>().getUser();
       await locationRequestHandler.sendLocationRequest(
           requesterId: user!.userId!,
           requesterName: user.name!,
@@ -773,7 +769,7 @@ class _GioUserListState extends State<GioUserList> {
   String? translatedDate;
   showPhoto(mrm.Photo p1) async {
     selectedPhoto = p1;
-    final settings = await prefsOGx.getSettings();
+    final settings = await getIt<PrefsOGx>().getSettings();
     translatedDate = getFmtDate(p1.created!, settings!.locale!);
     setState(() {
       _showPhoto = true;

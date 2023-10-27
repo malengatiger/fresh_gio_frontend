@@ -43,6 +43,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:universal_platform/universal_platform.dart';
 
+import '../initializer.dart';
 import '../l10n/translation_handler.dart';
 import '../library/api/data_api_og.dart';
 import '../library/bloc/cloud_storage_bloc.dart';
@@ -196,7 +197,7 @@ class DashboardKhayaState extends State<DashboardKhaya>
   Future<void> _handleGeofenceEvent(GeofenceEvent event) async {
     pp('$mm _handleGeofenceEvent ... ');
     //events.insert(0, event);
-    var settings = await prefsOGx.getSettings();
+    var settings = await getIt<PrefsOGx>().getSettings();
     var arr = await translator.translate('memberArrived', settings.locale!);
 
     if (event.projectName != null) {

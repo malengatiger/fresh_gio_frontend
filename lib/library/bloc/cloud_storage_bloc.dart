@@ -18,6 +18,7 @@ import 'package:realm/realm.dart';
 import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
 
 import '../../device_location/device_location_bloc.dart';
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
 import '../api/prefs_og.dart';
 import '../data/audio.dart';
@@ -107,7 +108,7 @@ class CloudStorageBloc {
       pp('\n$mm 🔴🔴🔴 failed audio cached in hive after upload or database failure 🔴🔴🔴');
       return uploadError;
     }
-    var user = await prefsOGx.getUser();
+    var user = await getIt<PrefsOGx>().getUser();
     var distance = 0.0;
     if (user != null) {
       if (audioForUpload.position != null) {
@@ -261,13 +262,13 @@ class CloudStorageBloc {
 
       pp('$mm adding photo ..... 😡😡 distance: '
           '${distance.toStringAsFixed(2)} metres 😡😡');
-      var user = await prefsOGx.getUser();
+      var user = await getIt<PrefsOGx>().getUser();
       final sett = await cacheManager.getSettings();
       final photoArrived =
           await translator.translate('photoArrived', sett.locale!);
       final messageFromGeo = await getFCMMessage('messageFromGeo');
 
-      var mUser = await prefsOGx.getUser();
+      var mUser = await getIt<PrefsOGx>().getUser();
 
       pp('$mm build photo object:.......');
       photo = mrm.Photo(ObjectId(),
@@ -556,7 +557,7 @@ class CloudStorageBloc {
     getUser();
   }
   Future? getUser() async {
-    _user = await prefsOGx.getUser();
+    _user = await getIt<PrefsOGx>().getUser();
     return _user;
   }
 }

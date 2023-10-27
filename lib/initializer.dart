@@ -12,6 +12,7 @@ import 'package:freshgio/library/errors/error_handler.dart';
 import 'package:freshgio/realm_data/data/app_services.dart';
 import 'package:freshgio/realm_data/data/realm_sync_api.dart';
 import 'package:freshgio/stitch/stitch_service.dart';
+import 'package:get_it/get_it.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:http/http.dart' as http;
@@ -31,6 +32,9 @@ int themeIndex = 0;
 late FirebaseApp firebaseApp;
 fb.User? fbAuthedUser;
 final Initializer initializer = Initializer();
+final getIt = GetIt.instance;
+
+
 
 class Initializer {
   final mx = '✅✅✅✅✅ Initializer: ✅';
@@ -42,12 +46,17 @@ class Initializer {
     await heavyLifting();
     return 0;
   }
+  void setup() {
 
+
+  }
   Future<void> initializeGioServices() async {
     pp('$mx initializeGioServices: ... setting up resources and blocs etc .............. ');
 
     await GetStorage.init(cacheName);
-    prefsOGx = PrefsOGx();
+    getIt.registerSingleton<PrefsOGx>(PrefsOGx());
+    getIt.registerSingleton<DeviceLocationBloc>(DeviceLocationBloc());
+
     locationBloc = DeviceLocationBloc();
     await Hive.initFlutter(hiveName);
     cacheManager = CacheManager();
@@ -57,9 +66,9 @@ class Initializer {
 
     stitchService = StitchService(http.Client());
 
-    errorHandler = ErrorHandler(locationBloc, prefsOGx);
+    errorHandler = ErrorHandler(locationBloc, getIt<PrefsOGx>());
     dataApiDog =
-        DataApiDog(client, appAuth, cacheManager, prefsOGx, errorHandler);
+        DataApiDog(client, appAuth, cacheManager, getIt<PrefsOGx>(), errorHandler);
     dataRefresher =
         DataRefresher(appAuth, errorHandler, dataApiDog, client, cacheManager);
     geoUploader = GeoUploader(errorHandler, cacheManager, dataApiDog);
@@ -68,13 +77,13 @@ class Initializer {
     locationRequestHandler = LocationRequestHandler(dataApiDog);
 
     realmSyncApi = RealmSyncApi();
-    final sett = await prefsOGx.getSettings();
+    final sett = await getIt<PrefsOGx>().getSettings();
     await realmSyncApi.initialize();
 
     if (sett.organizationId != null) {
       var m = getStartEndDatesFromDays(numberOfDays: sett.numberOfDays!);
-      var user = await prefsOGx.getUser();
-      var proj = await prefsOGx.getProject();
+      var user = await getIt<PrefsOGx>().getUser();
+      var proj = await getIt<PrefsOGx>().getProject();
       String? projectId, countryId;
       if (user != null) {
         countryId = user.userId;
@@ -98,10 +107,10 @@ class Initializer {
     list.sort((a, b) => a.name!.compareTo(b.name!));
     pp('\n$mx COUNTRIES LOADED: 🔵🔵🔵🔵🔵🔵🔵🔵🔵 ${list.length}');
 
-    theGreatGeofencer = TheGreatGeofencer(prefsOGx, realmSyncApi, dataApiDog);
+    theGreatGeofencer = TheGreatGeofencer(getIt<PrefsOGx>(), realmSyncApi, dataApiDog);
     //todo - dataHandler might not be needed
     dataHandler =
-        IsolateDataHandler(prefsOGx, appAuth, cacheManager, realmSyncApi);
+        IsolateDataHandler(getIt<PrefsOGx>(), appAuth, cacheManager, realmSyncApi);
     pollingControl = IosPollingControl(dataHandler);
 
     projectBloc = ProjectBloc(dataApiDog, cacheManager, dataHandler);
@@ -117,7 +126,7 @@ class Initializer {
     pp('$mx ................... Heavy lifting starting ....');
 
     final start = DateTime.now();
-    final settings = await prefsOGx.getSettings();
+    final settings = await getIt<PrefsOGx>().getSettings();
 
     FirebaseMessaging.instance.requestPermission();
 

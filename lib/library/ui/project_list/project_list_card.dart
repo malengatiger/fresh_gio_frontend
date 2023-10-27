@@ -3,6 +3,7 @@ import 'package:focused_menu/focused_menu.dart';
 import 'package:focused_menu/modals.dart';
 import 'package:freshgio/library/api/prefs_og.dart';
 
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
 import '../../data/project.dart';
 import '../../data/user.dart';
@@ -62,7 +63,7 @@ class _ProjectListCardState extends State<ProjectListCard> {
   }
 
   void _setText() async {
-    var sett = await prefsOGx.getSettings();
+    var sett = await getIt<PrefsOGx>().getSettings();
     projectDashboard =
         await translator.translate('projectDashboard', sett.locale!);
     addProjectAreas =

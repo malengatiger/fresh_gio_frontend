@@ -11,6 +11,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:realm/realm.dart';
 
 import '../../../device_location/device_location_bloc.dart';
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
 import '../../api/data_api_og.dart';
 import '../../api/prefs_og.dart';
@@ -77,7 +78,7 @@ class ProjectPolygonMapMobileState extends State<ProjectPolygonMapMobile>
   }
 
   void _setTexts() async {
-    var sett = await prefsOGx.getSettings();
+    var sett = await getIt<PrefsOGx>().getSettings();
     title = await translator.translate('projectMonitoringAreas', sett.locale!);
     areas = await translator.translate('areas', sett.locale!);
     var x = await translator.translate('area', sett.locale!);
@@ -89,9 +90,9 @@ class ProjectPolygonMapMobileState extends State<ProjectPolygonMapMobile>
       busy = true;
     });
     try {
-      var p = await prefsOGx.getUser();
+      var p = await getIt<PrefsOGx>().getUser();
       user = OldToRealm.getUser(p!);
-      var sett = await prefsOGx.getSettings();
+      var sett = await getIt<PrefsOGx>().getSettings();
       realmSyncApi.projectPositionStream.listen((event) {
         if (mounted) {
           setState(() {

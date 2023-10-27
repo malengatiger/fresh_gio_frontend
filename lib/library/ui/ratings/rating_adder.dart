@@ -7,14 +7,12 @@ import 'package:responsive_builder/responsive_builder.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../device_location/device_location_bloc.dart';
+import '../../../initializer.dart';
 import '../../api/prefs_og.dart';
 import '../../cache_manager.dart';
-import '../../data/audio.dart';
-import '../../data/photo.dart';
 import '../../data/position.dart';
 import '../../data/rating.dart';
 import '../../data/user.dart';
-import '../../data/video.dart';
 import '../../functions.dart';
 import '../../generic_functions.dart';
 import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
@@ -64,7 +62,7 @@ class RatingAdderState extends State<RatingAdder>
   }
 
   void _setTexts() async {
-    var sett = await prefsOGx.getSettings();
+    var sett = await getIt<PrefsOGx>().getSettings();
     addAudioRating = await translator.translate('addAudioRating', sett.locale!);
     addVideoRating = await translator.translate('addVideoRating', sett.locale!);
     addPhotoRating = await translator.translate('addPhotoRating', sett.locale!);
@@ -114,7 +112,7 @@ class RatingAdderState extends State<RatingAdder>
       busy = true;
     });
     try {
-      var user = await prefsOGx.getUser();
+      var user = await getIt<PrefsOGx>().getUser();
       var loc = await locationBloc.getLocation();
 
       var projectId = '', projectName = '', organizationId = '';

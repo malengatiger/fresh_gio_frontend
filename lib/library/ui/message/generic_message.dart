@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:uuid/uuid.dart';
 
+import '../../../initializer.dart';
 import '../../api/data_api_og.dart';
 import '../../api/prefs_og.dart';
 import '../../data/org_message.dart';
@@ -42,7 +43,7 @@ class GenericMessageState extends State<GenericMessage> {
     setState(() {
       isBusy = true;
     });
-    var admin = await prefsOGx.getUser();
+    var admin = await getIt<PrefsOGx>().getUser();
     if (admin != null && admin.userId != widget.user.userId) {
       var msg = OrgMessage(
           name: widget.user.name,

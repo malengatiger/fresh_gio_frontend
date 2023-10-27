@@ -5,6 +5,7 @@ import 'package:freshgio/library/data/settings_model.dart';
 import 'package:freshgio/library/functions.dart';
 import 'package:freshgio/ui/activity/user_profile_card.dart';
 
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
 import '../../library/api/prefs_og.dart';
 import '../../library/data/activity_type_enum.dart';
@@ -62,7 +63,7 @@ class ActivityStreamCardState extends State<ActivityStreamCard> {
     setState(() {
       busy = true;
     });
-    settings = await prefsOGx.getSettings();
+    settings = await getIt<PrefsOGx>().getSettings();
     locale = settings.locale!;
     if (widget.activityModel.userId != null) {
       for (var user in widget.users) {

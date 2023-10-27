@@ -4,6 +4,7 @@ import 'package:freshgio/library/functions.dart';
 import 'package:freshgio/library/generic_functions.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
 import '../../library/api/data_api_og.dart';
 import '../../library/bloc/data_refresher.dart';
@@ -34,14 +35,14 @@ class _AuthTabletSignInState extends State<AuthTabletSignIn> {
   }
 
   Future _setTexts() async {
-    final sett = await prefsOGx.getSettings();
+    final sett = await getIt<PrefsOGx>().getSettings();
     title = await translator.translate('signIn', sett!.locale!);
     subTitle = await translator.translate('signInInstruction', sett!.locale!);
     setState(() {});
   }
 
   void _onSignedIn(ur.User user) async {
-    final sett = await prefsOGx.getSettings();
+    final sett = await getIt<PrefsOGx>().getSettings();
     dataRefresher.manageRefresh(
         numberOfDays: sett.numberOfDays!,
         organizationId: sett.organizationId!,

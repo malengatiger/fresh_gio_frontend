@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:freshgio/initializer.dart';
 import 'package:freshgio/library/api/prefs_og.dart';
 import 'package:freshgio/library/bloc/old_to_realm.dart';
 import 'package:freshgio/library/bloc/theme_bloc.dart';
@@ -177,13 +178,13 @@ class AuthEmailRegistrationPortraitState
         translatedTitle: messageFromGeo,
         password: password);
 
-    await prefsOGx.saveUser(OldToRealm.getUser(user!));
+    await getIt<PrefsOGx>().saveUser(OldToRealm.getUser(user!));
     var sett = getBaseSettings();
     sett.organizationId = org.organizationId!;
 
     var mSettings = await dataApiDog.addSettings(sett);
 
-    await prefsOGx.saveSettings(mSettings);
+    await getIt<PrefsOGx>().saveSettings(mSettings);
 
     var loc = await locationBloc.getLocation();
 
@@ -203,7 +204,7 @@ class AuthEmailRegistrationPortraitState
       var cred = await firebaseAuth.signInWithEmailAndPassword(
           email: user!.email!, password: password);
       pp('$mm cred after signing in again after auth update: 🍎 $cred 🍎');
-      await prefsOGx.getUser();
+      await getIt<PrefsOGx>().getUser();
       await themeBloc.changeToTheme(mSettings.themeIndex!);
 
       pp('\n\n$mm Organization registered: 🌍🌍🌍🌍 🍎 resultBag: ${resultBag.toJson()} 🌍🌍🌍🌍\n\n');
@@ -228,7 +229,7 @@ class AuthEmailRegistrationPortraitState
         country = p1;
       });
     }
-    prefsOGx.saveCountry(p1);
+    getIt<PrefsOGx>().saveCountry(p1);
   }
   bool refreshCountries = false;
 

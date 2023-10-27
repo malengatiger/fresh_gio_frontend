@@ -7,6 +7,7 @@ import 'package:freshgio/library/functions.dart';
 import 'package:geofence_service/geofence_service.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
 import '../../library/api/data_api_og.dart';
 import '../../library/bloc/cloud_storage_bloc.dart';
@@ -76,7 +77,7 @@ class DashboardMainState extends State<DashboardMain>
     });
     try {
       //await initializer.initializeGeo();
-      final sett = await prefsOGx.getSettings();
+      final sett = await getIt<PrefsOGx>().getSettings();
       initializingText =
           await translator.translate('initializing', sett.locale!);
       final gr = await translator.translate('geoRunning', sett.locale!);
@@ -99,7 +100,7 @@ class DashboardMainState extends State<DashboardMain>
   }
 
   Future _getUser() async {
-    user = await prefsOGx.getUser();
+    user = await getIt<PrefsOGx>().getUser();
     pp('$mm starting to cook with Gas!');
     setState(() {});
   }

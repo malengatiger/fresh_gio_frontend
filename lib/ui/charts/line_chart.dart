@@ -43,8 +43,8 @@ class TheLineChartState extends State<TheLineChart> {
         aspectRatio: isPortrait ? 2 : 4,
         child: LineChart(
           _buildLineChartData(),
-          swapAnimationDuration: const Duration(milliseconds: 500), // Optional
-          swapAnimationCurve: Curves.linear,
+          // swapAnimationDuration: const Duration(milliseconds: 500), // Optional
+          // swapAnimationCurve: Curves.linear,
         ),
       ),
     );

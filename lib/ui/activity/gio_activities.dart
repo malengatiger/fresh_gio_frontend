@@ -14,6 +14,7 @@ import 'package:freshgio/ui/activity/activity_stream_card.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
 import '../../library/bloc/cloud_storage_bloc.dart';
 import '../../library/bloc/geo_uploader.dart';
@@ -236,7 +237,7 @@ class TabletListState extends State<TabletList> {
   }
 
   void _setTexts() async {
-    settings = await prefsOGx.getSettings();
+    settings = await getIt<PrefsOGx>().getSettings();
     activityStrings = await ActivityStrings.getTranslated(settings.locale!);
     setState(() {});
   }
@@ -304,7 +305,7 @@ class MobileListState extends State<MobileList> {
   }
 
   void _setTexts() async {
-    settings = await prefsOGx.getSettings();
+    settings = await getIt<PrefsOGx>().getSettings();
     activityStrings = await ActivityStrings.getTranslated(settings!.locale!);
     title = await translator.translate('events', settings!.locale!);
     setState(() {});

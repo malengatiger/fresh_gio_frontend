@@ -14,6 +14,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
 
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
 import '../../library/api/prefs_og.dart';
 import '../../library/bloc/cloud_storage_bloc.dart';
@@ -105,7 +106,7 @@ class ProjectDashboardMobileState extends State<ProjectDashboardMobile>
   }
 
   void _setTexts() async {
-    var sett = await prefsOGx.getSettings();
+    var sett = await getIt<PrefsOGx>().getSettings();
     dashboardStrings = await DashboardStrings.getTranslated();
     title = await translator.translate('projectDashboard', sett!.locale!);
   }
@@ -128,7 +129,7 @@ class ProjectDashboardMobileState extends State<ProjectDashboardMobile>
 
   Future _getData(bool forceRefresh) async {
     pp('$mm ............................................Refreshing data ....');
-    user = await prefsOGx.getUser();
+    user = await getIt<PrefsOGx>().getUser();
     if (user != null) {
       if (user!.userType == UserType.orgAdministrator) {
         type = 'Administrator';
@@ -433,7 +434,7 @@ class DashboardStrings {
       required this.audioClips});
 
   static Future<DashboardStrings> getTranslated() async {
-    var sett = await prefsOGx.getSettings();
+    var sett = await getIt<PrefsOGx>().getSettings();
     var projects = await translator.translate('projects', sett!.locale!);
     var members = await translator.translate('members', sett.locale!);
     var photos = await translator.translate('photos', sett.locale!);

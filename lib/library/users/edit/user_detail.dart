@@ -3,16 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:freshgio/library/bloc/old_to_realm.dart';
 import 'package:freshgio/library/users/edit/user_detail_form.dart';
-import 'package:freshgio/library/users/edit/user_form.dart';
 import 'package:freshgio/library/users/full_user_photo.dart';
 import 'package:page_transition/page_transition.dart';
 
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
 import '../../api/prefs_og.dart';
 import '../../bloc/fcm_bloc.dart';
 import '../../data/country.dart';
 import '../../data/settings_model.dart';
-import '../../data/user.dart' as ar;
 import '../../functions.dart';
 import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
 
@@ -58,13 +57,13 @@ class UserDetailState extends State<UserDetail>
   }
 
   void _getAdministrator() async {
-    var p  = await prefsOGx.getUser();
+    var p  = await getIt<PrefsOGx>().getUser();
     admin = OldToRealm.getUser(p!);
     setState(() {});
   }
 
   void _setTexts() async {
-    var sett = await prefsOGx.getSettings();
+    var sett = await getIt<PrefsOGx>().getSettings();
     userFormStrings = await UserFormStrings.getTranslated();
     hint = await translator.translate('pleaseSelectCountry', sett.locale!);
     title = widget.user.name!;
@@ -210,7 +209,7 @@ class UserFormStrings {
       required this.profilePhoto});
 
   static Future<UserFormStrings?> getTranslated() async {
-    var sett = await prefsOGx.getSettings();
+    var sett = await getIt<PrefsOGx>().getSettings();
     var userName = await translator.translate('name', sett.locale!);
     var cellphone = await translator.translate('cellphone', sett.locale!);
     var male = await translator.translate('male', sett.locale!);

@@ -13,6 +13,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:universal_platform/universal_platform.dart';
 
+import '../../initializer.dart';
 import '../../library/api/data_api_og.dart';
 import '../../library/api/prefs_og.dart';
 import '../../library/bloc/cloud_storage_bloc.dart';
@@ -109,14 +110,14 @@ class ProjectDashboardTabletState extends State<ProjectDashboardTablet>
   }
 
   void _setTexts() async {
-    var sett = await prefsOGx.getSettings();
+    var sett = await getIt<PrefsOGx>().getSettings();
     dashboardStrings = await DashboardStrings.getTranslated();
   }
 
   var type = '';
   void _getData(bool forceRefresh) async {
     pp('$mm ............................................Refreshing data ....');
-    deviceUser = await prefsOGx.getUser();
+    deviceUser = await getIt<PrefsOGx>().getUser();
     if (deviceUser != null) {
       if (deviceUser!.userType == UserType.orgAdministrator) {
         type = 'Administrator';
@@ -288,7 +289,7 @@ class ProjectDashboardTabletState extends State<ProjectDashboardTablet>
   void _displayPhoto(mrm.Photo photo) async {
     pp('$mm _displayPhoto ...');
     this.photo = photo;
-    final settings = await prefsOGx.getSettings();
+    final settings = await getIt<PrefsOGx>().getSettings();
     translatedDate = getFmtDate(photo.created!, settings!.locale!);
     setState(() {
       _showPhoto = true;

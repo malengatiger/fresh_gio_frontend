@@ -8,6 +8,7 @@ import 'package:freshgio/ui/activity/activity_header.dart';
 import 'package:realm/realm.dart';
 
 import '../../dashboard_khaya/recent_event_list.dart';
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
 import '../../library/api/prefs_og.dart';
 import '../../library/data/activity_model.dart';
@@ -68,7 +69,7 @@ class _ActivityListCardState extends State<ActivityListCard> {
     setState(() {
       loadingSettings = true;
     });
-    var d = await prefsOGx.getSettings();
+    var d = await getIt<PrefsOGx>().getSettings();
     settings = OldToRealm.getSettings(d);
     activityStrings = await ActivityStrings.getTranslated(settings!.locale!);
     var sub = await translator.translate('activityTitle', settings!.locale!);

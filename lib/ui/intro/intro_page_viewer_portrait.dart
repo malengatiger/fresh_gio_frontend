@@ -12,6 +12,7 @@ import 'package:freshgio/ui/auth/auth_signin_main.dart';
 import 'package:page_transition/page_transition.dart';
 
 import '../../dashboard_khaya/xd_dashboard.dart';
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
 import '../../library/api/data_api_og.dart';
 import '../../library/api/prefs_og.dart';
@@ -106,7 +107,7 @@ class IntroPageViewerPortraitState extends State<IntroPageViewerPortrait>
   void _getAuthenticationStatus() async {
     pp('\n\n$mm _getAuthenticationStatus ....... '
         'check both Firebase user ang Geo user');
-    var user = await prefsOGx.getUser();
+    var user = await getIt<PrefsOGx>().getUser();
     var firebaseUser = firebaseAuth.currentUser;
 
     if (user != null && firebaseUser != null) {
@@ -118,7 +119,7 @@ class IntroPageViewerPortraitState extends State<IntroPageViewerPortrait>
           '${E.redDot}${E.redDot}${E.redDot} ... will clean house!!');
       authed = false;
       //todo - ensure that the right thing gets done!
-      prefsOGx.deleteUser();
+      getIt<PrefsOGx>().deleteUser();
       firebaseAuth.signOut();
       cacheManager.initialize();
       pp('$mm _getAuthenticationStatus .......  '
@@ -166,13 +167,13 @@ class IntroPageViewerPortraitState extends State<IntroPageViewerPortrait>
             alignment: Alignment.topLeft,
             duration: const Duration(seconds: 1),
             child: AuthSignIn(
-              prefsOGx: prefsOGx,
+              prefsOGx: getIt<PrefsOGx>(),
               dataApiDog: dataApiDog,
               cacheManager: cacheManager,
             )));
 
     pp('$mm _navigateToSignIn ....... back from PhoneLogin with maybe a user ..');
-    var p = await prefsOGx.getUser();
+    var p = await getIt<PrefsOGx>().getUser();
     user = OldToRealm.getUser(p!);
     pp('\n\n$mm 😡😡Returned from sign in, checking if login succeeded 😡');
 
@@ -205,7 +206,7 @@ class IntroPageViewerPortraitState extends State<IntroPageViewerPortrait>
             alignment: Alignment.topLeft,
             duration: const Duration(seconds: 1),
             child: AuthRegistrationMain(
-              prefsOGx: prefsOGx,
+              prefsOGx: getIt<PrefsOGx>(),
               dataApiDog: dataApiDog,
               cacheManager: cacheManager,
               firebaseAuth: firebaseAuth,
@@ -392,7 +393,7 @@ class IntroPageViewerPortraitState extends State<IntroPageViewerPortrait>
                 shape: getRoundedBorder(radius: 8),
                 child: DotsIndicator(
                   dotsCount: 5,
-                  position: currentIndexPage,
+                  position: currentIndexPage.toInt(),
                   decorator: const DotsDecorator(
                     colors: [
                       Colors.grey,

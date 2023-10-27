@@ -15,6 +15,7 @@ import 'package:realm/realm.dart';
 import 'package:realm/realm.dart';
 
 import '../../generic_utils/functions.dart';
+import '../../initializer.dart';
 import '../../library/api/data_api_og.dart';
 
 const realmAppId = 'application-0-rmusa';
@@ -253,7 +254,7 @@ class RealmSyncApi with ChangeNotifier {
       }
       pp('\n$mm RealmApp configured OK  🥬 🥬 🥬 🥬: 🔵 ${realmRemote.schema.length} Realm schemas \n\n');
       initialized = true;
-      final p = await prefsOGx.getUser();
+      final p = await getIt<PrefsOGx>().getUser();
       if (p != null) {
         _user = OldToRealm.getUser(p);
       }
@@ -304,7 +305,7 @@ class RealmSyncApi with ChangeNotifier {
       required String? startDate}) async {
 
     var start = DateTime.now();
-    var user = await prefsOGx.getUser();
+    var user = await getIt<PrefsOGx>().getUser();
     countryCitiesQuery =
         realmRemote.query<mrm.City>("countryId == \$0", [countryId]);
     countryCitiesQuery.changes.listen((event) {
@@ -975,7 +976,7 @@ class RealmSyncApi with ChangeNotifier {
       _checkFinalResults(organization);
       //
 
-      await prefsOGx.saveUser(user);
+      await getIt<PrefsOGx>().saveUser(user);
       final end = DateTime.now();
       final deltaInSeconds = end.difference(start).inSeconds;
       pp('\n$mm 🔵🐦🔵🐦🔵🐦 $uu Time elapsed for Registration: $deltaInSeconds seconds');

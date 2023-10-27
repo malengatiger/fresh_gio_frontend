@@ -8,6 +8,7 @@ import 'package:freshgio/ui/activity/activity_header.dart';
 import 'package:freshgio/ui/activity/activity_stream_card.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 
+import '../../initializer.dart';
 import '../../l10n/translation_handler.dart';
 import '../../library/api/prefs_og.dart';
 import '../../library/data/audio.dart';
@@ -104,9 +105,9 @@ class ActivityListState extends State<ActivityList>
   }
 
   Future _setTexts() async {
-    var p = await prefsOGx.getUser();
+    var p = await getIt<PrefsOGx>().getUser();
     user = OldToRealm.getUser(p!);
-    settings = await prefsOGx.getSettings();
+    settings = await getIt<PrefsOGx>().getSettings();
     locale = settings!.locale;
     if (widget.project != null) {
       title = await translator.translate('projectActivity', settings!.locale!);

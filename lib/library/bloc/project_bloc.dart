@@ -4,6 +4,7 @@ import 'package:freshgio/library/data/activity_model.dart';
 import 'package:freshgio/library/data/settings_model.dart';
 
 import '../../device_location/device_location_bloc.dart';
+import '../../initializer.dart';
 import '../api/data_api_og.dart';
 import '../api/prefs_og.dart';
 import '../cache_manager.dart';
@@ -21,7 +22,6 @@ import '../data/questionnaire.dart';
 import '../data/user.dart';
 import '../data/video.dart';
 import '../functions.dart';
-import 'data_refresher.dart';
 import 'isolate_handler.dart';
 
 late ProjectBloc projectBloc;
@@ -393,7 +393,7 @@ class ProjectBloc {
 
   Future<List<Project>> getProjectsWithinRadius(
       {double radiusInKM = 100.5, bool checkUserOrg = true}) async {
-    var user = await prefsOGx.getUser();
+    var user = await getIt<PrefsOGx>().getUser();
     var pos = await locationBloc.getLocation();
     try {
       if (pos != null) {

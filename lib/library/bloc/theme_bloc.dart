@@ -7,6 +7,7 @@ import 'package:freshgio/library/data/settings_model.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../initializer.dart';
 import '../api/prefs_og.dart';
 import '../emojis.dart';
 import '../functions.dart';
@@ -33,8 +34,7 @@ class ThemeBloc {
 
   _initialize() async {
     await GetStorage.init(cacheName);
-    prefsOGx = PrefsOGx();
-    settings = await prefsOGx.getSettings();
+    settings = await getIt<PrefsOGx>().getSettings();
     pp('$mm initialize: acquired settings: ....theme index: ${settings!.themeIndex}');
     Locale newLocale = Locale(settings!.locale!);
     final m =
@@ -51,9 +51,9 @@ class ThemeBloc {
     _themeIndex = _rand.nextInt(SchemeUtil.getThemeCount() - 1);
     pp('\n\n$mm changing to theme index: $_themeIndex');
     pp('$mm _setStream: setting stream .... to theme index: $_themeIndex');
-    settings ??= await prefsOGx.getSettings();
+    settings ??= await getIt<PrefsOGx>().getSettings();
     settings!.themeIndex = _themeIndex;
-    await prefsOGx.saveSettings(settings!);
+    await getIt<PrefsOGx>().saveSettings(settings!);
 
     Locale newLocale = Locale(settings!.locale!);
     final m =
@@ -63,14 +63,14 @@ class ThemeBloc {
 
   Future<void> changeToTheme(int index) async {
     pp('\n\n$mm changing to theme index: $index, adding index to stream');
-    settings = await prefsOGx.getSettings();
+    settings = await getIt<PrefsOGx>().getSettings();
     await _dance(index, settings!.locale!, settings!);
     pp('$mm changed theme index: $index, locale: ${settings!.locale} update current cached settings');
   }
 
   Future<void> changeToLocale(String locale) async {
     // pp('\n\n$mm changing to locale: $locale, adding locale to stream');
-    var settings = await prefsOGx.getSettings();
+    var settings = await getIt<PrefsOGx>().getSettings();
     await _dance(settings!.themeIndex!, locale, settings);
     // pp('$mm changing locale: ${settings!.locale} updated cached settings');
   }
@@ -78,7 +78,7 @@ class ThemeBloc {
   Future<void> _dance(int index, String locale, SettingsModel settings) async {
     settings.themeIndex = index;
     settings.locale = locale;
-    await prefsOGx.saveSettings(settings);
+    await getIt<PrefsOGx>().saveSettings(settings);
 
     Locale newLocale = Locale(settings.locale!);
     final m =

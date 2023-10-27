@@ -5,29 +5,22 @@ import 'dart:math';
 import 'package:animations/animations.dart';
 import 'package:badges/badges.dart' as bd;
 import 'package:flutter/material.dart';
-import 'package:freshgio/library/api/prefs_og.dart';
 import 'package:freshgio/library/bloc/fcm_bloc.dart';
 import 'package:freshgio/library/bloc/old_to_realm.dart';
-import 'package:freshgio/library/bloc/organization_bloc.dart';
-import 'package:freshgio/library/bloc/project_bloc.dart';
 import 'package:freshgio/realm_data/data/realm_sync_api.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:realm/realm.dart';
 
 import '../../../device_location/device_location_bloc.dart';
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
-import '../../api/data_api_og.dart';
+import '../../api/prefs_og.dart';
 import '../../cache_manager.dart';
-import '../../data/city.dart';
-import '../../data/photo.dart';
-import '../../data/position.dart' as local;
-import '../../data/project.dart';
 import '../../data/project_polygon.dart';
 import '../../data/project_position.dart';
 import '../../data/user.dart';
 import '../../emojis.dart';
 import '../../functions.dart';
-import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
 import 'package:freshgio/realm_data/data/schemas.dart' as mrm;
 
 class ProjectMapTablet extends StatefulWidget {
@@ -154,7 +147,7 @@ class ProjectMapTabletState extends State<ProjectMapTablet>
   double? currentLat, currentLng;
 
   void _getUser() async {
-    var p = await prefsOGx.getUser();
+    var p = await getIt<PrefsOGx>().getUser();
     user = OldToRealm.getUser(p!);
     var loc = await locationBloc.getLocation();
     currentLat = loc.latitude;
@@ -165,7 +158,7 @@ class ProjectMapTabletState extends State<ProjectMapTablet>
     setState(() {});
   }
   void _setTexts() async {
-    var p = await prefsOGx.getSettings();
+    var p = await getIt<PrefsOGx>().getSettings();
     sett = OldToRealm.getSettings(p);
     projectLocationsAreas = await translator.translate('projectLocationsAreas', sett!.locale!);
     var loc = await translator.translate('location', sett!.locale!);
@@ -318,7 +311,7 @@ class ProjectMapTabletState extends State<ProjectMapTablet>
     list.sort();
 
     pp('$mm Distances in list, length: : ${list.length} $list');
-    var sett = await prefsOGx.getSettings();
+    var sett = await getIt<PrefsOGx>().getSettings();
     if (list.elementAt(0) <=
         sett.distanceFromProject!) {
       return true;

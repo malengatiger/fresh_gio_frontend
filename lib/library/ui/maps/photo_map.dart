@@ -3,11 +3,11 @@ import 'dart:math';
 
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
-import 'package:freshgio/library/api/prefs_og.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../../../initializer.dart';
 import '../../../l10n/translation_handler.dart';
-import '../../data/photo.dart';
+import '../../api/prefs_og.dart';
 import '../../data/position.dart' as local;
 import '../../data/project_polygon.dart';
 import '../../data/project_position.dart';
@@ -72,7 +72,7 @@ class PhotoMapState extends State<PhotoMap>
   }
 
   Future _setTexts() async {
-    final sett = await prefsOGx.getSettings();
+    final sett = await getIt<PrefsOGx>().getSettings();
     photoLocationText =
         await translator.translate('photoLocation', sett!.locale!);
     myDate = getFmtDate(widget.photo.created!, sett!.locale!);
@@ -80,7 +80,7 @@ class PhotoMapState extends State<PhotoMap>
   }
 
   void _getUser() async {
-    user = await prefsOGx.getUser();
+    user = await getIt<PrefsOGx>().getUser();
   }
 
   @override

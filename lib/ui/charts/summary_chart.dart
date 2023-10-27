@@ -3,6 +3,7 @@ import 'package:freshgio/library/api/prefs_og.dart';
 import 'package:freshgio/library/data/project_summary.dart';
 import 'package:freshgio/ui/charts/bar_chart.dart';
 
+import '../../initializer.dart';
 import '../../library/bloc/organization_bloc.dart';
 import '../../library/data/project.dart';
 import '../../library/data/user.dart';
@@ -49,7 +50,7 @@ class ProjectSummaryChartState extends State<ProjectSummaryChart>
 
     pp('$mm ... getting summary data ... forceRefresh: $forceRefresh');
     try {
-      user = await prefsOGx.getUser();
+      user = await getIt<PrefsOGx>().getUser();
       pp('$mm ... get summaries 🔵🔵 startDate: ${dateTimeRange!.start} '
           ' endDate: ${dateTimeRange!.end}');
       if (widget.project != null) {
